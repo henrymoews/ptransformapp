@@ -1,3 +1,5 @@
+import MainReason from './MainReason'
+
 export const SegmentType = Object.freeze({
   PARKING_ALLOWED: Symbol('PARKING_ALLOWED'),
   NO_PARKING_LANE: Symbol('NO_PARKING_LANE'),
@@ -6,10 +8,30 @@ export const SegmentType = Object.freeze({
   UNDEFINED: Symbol('UNDEFINED')
 })
 
+export const PARKING_ALLOWED = Object.freeze({
+  ALWAYS: Symbol('ALWAYS'),
+  TEMPORARILY: Symbol('TEMPORARILY'),
+  NEVER: Symbol('NEVER'),
+  UNKNOWN: Symbol('UNKNOWN')
+})
+
+/**
+ * TODO: find proper English words
+ */
+export const PARKING_TYPE = Object.freeze({
+  LAENGS: Symbol('LAENGS'),
+  SCHRAEG: Symbol('SCHRAEG'),
+  QUER: Symbol('QUER')
+})
+
 export default class Segment {
 
   constructor (type = SegmentType.UNDEFINED) {
     this.type = type
+    this.parkingAllowed = PARKING_ALLOWED.UNKNOWN
+    this.mainReason = new MainReason()
+    this.isMarked = false
+    this.parkingType = PARKING_TYPE.LAENGS
   }
 
   /**
@@ -21,6 +43,10 @@ export default class Segment {
     const result = new Segment()
     if (segment) {
       result.type = segment.type
+      result.parkingAllowed = segment.parkingAllowed
+      result.mainReason = Object.assign({}, segment.mainReason)
+      result.isMarked = segment.isMarked
+      result.parkingType = segment.parkingType
     }
     return result
   }

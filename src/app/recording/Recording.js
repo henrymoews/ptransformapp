@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PTMap from '../map/PTMap'
 import Paper from '@material-ui/core/Paper'
 import MapOverlay from '../map/MapOverlay'
@@ -37,11 +37,15 @@ function Recording () {
     setSegments([segment])
     const segmentsCopy = [...segments]
     segmentsCopy[index] = segment
-    console.log('segments', segments, 'segments copy', segmentsCopy)
     setSegments(segmentsCopy)
   }
 
+  function removeSegment (segment) {
+    setSegments(segments.filter(s => s !== segment))
+  }
+
   function addSegment (segment) {
+    console.log('segment', segment)
     setSegments([...segments, segment])
   }
 
@@ -74,33 +78,40 @@ function Recording () {
 
   function renderRecording () {
     const cards =
-    [
-      <StartEndPointUI key={'start'} isStart position={startPosition} onEdit={() => setStep(STEPS.CHOOSE_START_POINT)}/>,
-      segments.map((segment, index) =>
-        <SegmentUI
-          key={`segment_${index}`}
-          segment={segment}
-          forNewSegment
-          editMode={segmentIndexInEditMode === index}
-          onEdit={() => setSegmentIndexInEditMode(index)}
-          onUpdated={segment => {
-            console.log('segment', segment)
-            updateSegment(index, segment)
-            setSegmentIndexInEditMode(-1)
-          }}
-        />
-      )
-    ]
+      [
+        <StartEndPointUI
+          key={'start'}
+          isStart
+          position={startPosition}
+          onEdit={() => setStep(STEPS.CHOOSE_START_POINT)}
+        />,
+        segments.map((segment, index) =>
+          <SegmentUI
+            key={`segment_${index}${segmentIndexInEditMode === index ? '_edit' : ''}`}
+            outerSegment={segment}
+            editMode={segmentIndexInEditMode === index}
+            onEdit={() => setSegmentIndexInEditMode(index)}
+            onDelete={() => {
+              removeSegment(segment)
+              setSegmentIndexInEditMode(-1)
+            }}
+            onUpdated={updatedSegment => {
+              updateSegment(index, updatedSegment)
+              setSegmentIndexInEditMode(-1)
+            }}
+          />
+        )
+      ]
 
-    if (segmentIndexInEditMode < 0) {
-      cards.push(
-        <SegmentUI
-          key={'new_segment'}
-          editMode
-          onUpdated={addSegment}
-        />
-      )
-    }
+    cards.push(
+      <SegmentUI
+        key={'new_segment' + segments.length}
+        editMode={segmentIndexInEditMode < 0}
+        onEdit={()=> setSegmentIndexInEditMode(-1)}
+        onUpdated={addSegment}
+        forNewSegment
+      />
+    )
 
     if (step === STEPS.FINISHED) {
       cards.push(<StartEndPointUI key={'end'} position={endPosition}/>)
