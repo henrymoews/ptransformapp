@@ -1,23 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Map, Marker, TileLayer } from 'react-leaflet'
 
-function PTMap ({onMarkerChanged}) {
+function PTMap ({onMarkerChanged, initialMarkerPosition}) {
 
-  const [devicePosition, setDevicePosition] = useState([52.530644, 13.383068])  // U Naturkundemuseum
-  const [markerPosition, setMarkerPosition] = useState(null)  // U Naturkundemuseum
+  const [devicePosition, setDevicePosition] = useState(initialMarkerPosition || [52.530644, 13.383068])  // U Naturkundemuseum
+  const [markerPosition, setMarkerPosition] = useState(devicePosition)
   const markerRef = useRef(null)
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(position => {
-      if (position) {
-        const newDevicePosition = [position.coords.latitude, position.coords.longitude]
-        setDevicePosition(newDevicePosition)
-        setMarkerPosition(newDevicePosition)
-      }
-    }, (error) => {
-      window.alert('Deine Position wurde nicht automatisch erkannt.')
-      setMarkerPosition(devicePosition)
-    })
+    if (initialMarkerPosition === null) {
+      navigator.geolocation.getCurrentPosition(position => {
+        if (position) {
+          const newDevicePosition = [position.coords.latitude, position.coords.longitude]
+          setDevicePosition(newDevicePosition)
+          setMarkerPosition(newDevicePosition)
+        }
+      }, (error) => {
+        window.alert('Deine Position wurde nicht automatisch erkannt.')
+        setMarkerPosition(devicePosition)
+      })
+    }
   }, [])
 
   useEffect(() => {
@@ -43,7 +45,7 @@ function PTMap ({onMarkerChanged}) {
 
   return (
     <div>
-      <Map center={devicePosition} zoom={19} maxZoom={19}>
+      <Map center={devicePosition} zoom={18} maxZoom={19}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"

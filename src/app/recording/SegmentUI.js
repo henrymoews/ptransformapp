@@ -20,7 +20,7 @@ import { PropertyNames } from './MainReason'
 const useStyles = makeStyles({
   card: {
     maxWidth: '90%',
-    margin: '20px auto 0'
+    margin: '0px auto 0'
   },
   bullet: {
     display: 'inline-block',
@@ -90,6 +90,7 @@ export default function SegmentUI (
     onDelete,
     editMode,
     onUpdated,
+    onDone,
     forNewSegment = false
   }) {
 
@@ -99,28 +100,42 @@ export default function SegmentUI (
   const [goingToDelete, setGoingToDelete] = useState(false)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
 
+  function onHeaderClicked () {
+    if (editMode) {
+      onDone()
+    }
+    else {
+      onEdit()
+    }
+  }
+
+  function onChange(){
+    onUpdated(segment)
+    forceUpdate()
+  }
+
   function setOrUnsetParkingAllowed (newParkingAllowedType) {
     if (segment.parkingAllowed === newParkingAllowedType) {
       segment.parkingAllowed = PARKING_ALLOWED.UNKNOWN
     } else {
       segment.parkingAllowed = newParkingAllowedType
     }
-    forceUpdate()
+    onChange()
   }
 
   function toggleMainReason (boolPropertyName) {
     segment.mainReason.toggleProperty(boolPropertyName)
-    forceUpdate()
+    onChange()
   }
 
   function setMarked (isMarked) {
     segment.isMarked = isMarked
-    forceUpdate()
+    onChange()
   }
 
   function setParkingType (parkingType) {
     segment.parkingType = parkingType
-    forceUpdate()
+    onChange()
   }
 
   function renderSegmentAvatar () {
@@ -199,7 +214,7 @@ export default function SegmentUI (
             {renderSegmentAvatar()}
           </Avatar>
         }
-        onClick={onEdit}
+        onClick={() => onHeaderClicked()}
         title={renderAvatarTitle()}
         subheader={renderAvatarSubheader()}
       />
@@ -410,21 +425,9 @@ export default function SegmentUI (
         </Button>
       )
 
-    const saveButton = (
-      <Button
-        onClick={() => {onUpdated(segment)}}
-        className={classes.cardActionRight}
-        color="primary"
-        size="small"
-      >
-        Speichern
-      </Button>
-    )
-
     return (
       <CardActions>
         {deleteButton}
-        {saveButton}
       </CardActions>
     )
   }

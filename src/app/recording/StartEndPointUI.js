@@ -16,7 +16,7 @@ import FlagIcon from '@material-ui/icons/Flag';
 const useStyles = makeStyles({
   card: {
     maxWidth: '90%',
-    margin: '20px auto 0'
+    margin: '0 auto 0'
   },
   bullet: {
     display: 'inline-block',
@@ -34,12 +34,13 @@ const useStyles = makeStyles({
   },
 })
 
-export default function StartEndPointUI ({position, isStart = false, onEdit}) {
+export default function StartEndPointUI ({position, addressName = null, isStart = false, onEdit}) {
 
   const classes = useStyles()
 
   const flagIcon = isStart ? <FlagOutlinedIcon/> : <FlagIcon />
   const title = isStart ? 'Startpunkt' : 'Endpunkt'
+  const subtitle = addressName ? 'Nahe ' + addressName : null
 
   return (
     <Card className={classes.card} onClick={onEdit}>
@@ -50,6 +51,7 @@ export default function StartEndPointUI ({position, isStart = false, onEdit}) {
           </Avatar>
         }
         title={title}
+        subheader={subtitle}
       />
     </Card>
   )
