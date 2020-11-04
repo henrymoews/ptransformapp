@@ -16,88 +16,40 @@ import orange from '@material-ui/core/colors/orange'
 import blue from '@material-ui/core/colors/blue'
 import green from '@material-ui/core/colors/green'
 import red from '@material-ui/core/colors/red'
+import Tooltip from '@material-ui/core/Tooltip'
+import { renderToStaticMarkup } from 'react-dom/server'
 
 const STEPS = Object.freeze({
-  CHOOSE_START_POINT: Symbol('CHOOSE_START_POINT'),
-  ADD_SEGMENTS: Symbol('ADD_SEGMENTS'),
-  CHOOSE_END_POINT: Symbol('CHOOSE_END_POINT'),
+  CHOOSE_ROUTE: Symbol('CHOOSE_START_POINT'),
+  MAIN_PAGE: Symbol('ADD_SEGMENTS'),
   FINISHED: Symbol('FINISHED')
 })
 
 const useStyles = makeStyles({
-  bottomButtons: {
+  buttonGroup: {
     marginTop: 10,
     textAlign: 'center'
   },
   bottomButton: {
     marginLeft: 5,
     marginRight: 5
+  },
+  header: {
+    margin: '20px auto',
+    textAlign: 'center',
+    fontEeight: 'bold',
+    fontSize: 20
   }
 })
 
 function Recording () {
   const classes = useStyles()
 
-  const [startPosition, setStartPosition] = useState(nullPosition())
-  const [endPosition, setEndPosition] = useState(nullPosition())
+  const [route, setRoute] = useState([])
   const [segments, setSegments] = useState(emptySegments())
   const [segmentIndexInEditMode, setSegmentIndexInEditMode] = useState(-1)
-  const [step, setStep] = useState(STEPS.CHOOSE_START_POINT)
-  const [startAddress, setStartAddress] = useState({position: null, name: null})
-  const [endAddress, setEndAddress] = useState({position: null, name: null})
+  const [step, setStep] = useState(STEPS.MAIN_PAGE)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
-
-  useEffect(() => {
-    // noinspection JSIgnoredPromiseFromCall
-    lookupAddressesIfChanged()
-  }, [step])
-
-  async function lookupAddressesIfChanged () {
-    if (startAddress.position !== startPosition) {
-      const name = await lookupAddress(startPosition)
-      setStartAddress({position: startPosition, name: name})
-    }
-    if (endAddress.position !== endPosition) {
-      const name = await lookupAddress(endPosition)
-      setEndAddress({position: endPosition, name: name})
-    }
-  }
-
-  async function lookupAddress (latLon) {
-    const response = await httpRequest({
-      url: 'https://nominatim.openstreetmap.org/reverse',
-      expectsJsonResponse: true,
-      params: {
-        lat: latLon[0],
-        lon: latLon[1],
-        format: 'json'
-      }
-    })
-    if (!response.address) {
-      return null
-    }
-
-    const address = response.address
-
-    let displayName = ''
-    if (address.road) {
-      displayName += address.road
-      if (address.house_number) {
-        displayName += ' ' + address.house_number + ', '
-      }
-    }
-    displayName += address.suburb || address.town || address.country
-    return displayName
-  }
-
-  function goToRecordingStep () {
-
-    if (!startPosition) {
-      console.error('No marker position set. This shouldn\'t have happened.')
-      return
-    }
-    setStep(STEPS.ADD_SEGMENTS)
-  }
 
   function updateSegment (index, segment) {
     setSegments([segment])
@@ -117,50 +69,23 @@ function Recording () {
     forceUpdate()
   }
 
-  function renderChooseStartPoint () {
+  function renderEditMap () {
     return (
       <div>
-        <PTMap onMarkerChanged={setStartPosition} initialMarkerPosition={startPosition}/>
+        <PTMap key='map' onRouteChanged={(newRoute) => console.log('new route: ', newRoute)}/>
         <MapOverlay centered bottom={30}>
           <Paper zDepth={2}>
             <div className={'mediumPadding alignCenter'}>
-              <div className={'minorHeader'}>Wo geht's los?</div>
-              <div className={'text'}>Bitte setze den Marker an die Startposition.</div>
+              <div className={'minorHeader'}>Bitte setze die Route</div>
+              <div className={'text'}>Klicke dafür auf das Liniensymbol oben rechts</div>
               <div className={'minorMargin'}/>
               <Button
                 variant="contained"
                 color="primary"
                 className={'button'}
                 endIcon={<ArrowForwardIcon/>}
-                onClick={goToRecordingStep}
-                disabled={!startPosition}
-              >
-                Weiter
-              </Button>
-            </div>
-          </Paper>
-        </MapOverlay>
-      </div>
-    )
-  }
-
-  function renderChooseEndPoint () {
-    return (
-      <div>
-        <PTMap onMarkerChanged={setEndPosition} initialMarkerPosition={endPosition}/>
-        <MapOverlay centered bottom={30}>
-          <Paper zDepth={2}>
-            <div className={'mediumPadding alignCenter'}>
-              <div className={'minorHeader'}>Wo endet der Abschnitt?</div>
-              <div className={'text'}>Bitte setze den Marker an die Endposition.</div>
-              <div className={'minorMargin'}/>
-              <Button
-                variant="contained"
-                color="primary"
-                className={'button'}
-                endIcon={<ArrowForwardIcon/>}
-                onClick={goToRecordingStep}
-                disabled={!endPosition}
+                onClick={() => setStep(STEPS.MAIN_PAGE)}
+                // disabled={!route.length < 2}
               >
                 Fertig
               </Button>
@@ -171,88 +96,34 @@ function Recording () {
     )
   }
 
-  function renderRecording () {
-    console.log('segments', segments)
-    const cards =
-      [
-        <StartEndPointUI
-          key={'start'}
-          isStart
-          position={startPosition}
-          addressName={startAddress.name}
-          onEdit={() => setStep(STEPS.CHOOSE_START_POINT)}
-        />,
-        segments.map((segment, index) =>
-          [
-            <div style={{textAlign: 'center'}}>
-              <IconButton key={`segment_${index}_add`} component="span"
-                          onClick={() => addSegment(index)}>
-                <AddCircleIcon/>
-              </IconButton>
-            </div>,
-            <SegmentUI
-              key={`segment_${index}${segmentIndexInEditMode === index ? '_edit' : ''}`}
-              outerSegment={segment}
-              editMode={segmentIndexInEditMode === index}
-              onEdit={() => setSegmentIndexInEditMode(index)}
-              onDelete={() => {
-                removeSegment(segment)
-                setSegmentIndexInEditMode(-1)
-              }}
-              onUpdated={updatedSegment => {
-                updateSegment(index, updatedSegment)
-              }}
-              onDone={() => {
-                setSegmentIndexInEditMode(-1)
-              }}
-            />
-          ]
-        ),
-        endPosition ?
-          [
-            <div style={{textAlign: 'center'}}>
-              <IconButton key={`segment_add_before_end`} component="span"
-                          onClick={() => addSegment()}>
-                <AddCircleIcon/>
-              </IconButton>
-            </div>,
-            <StartEndPointUI
-              key={'end'}
-              isStart={false}
-              position={endPosition}
-              addressName={endAddress.name}
-              onEdit={() => setStep(STEPS.CHOOSE_END_POINT)}
-            />
-          ]
-          : null
-      ]
+  function renderEditMode () {
+    return (
+      <div>
+        <div className={classes.header}>Strecke</div>
+        {renderMapEditArea()}
+        <div className={classes.header}>Streckenabschnitte</div>
+        {renderSegments()}
+        <div className={classes.header}>Abschließen</div>
+        {renderFinishArea()}
+      </div>
+    )
+  }
 
-    if (step === STEPS.FINISHED) {
-      cards.push(<StartEndPointUI key={'end'} position={endPosition}/>)
-    }
-    const buttons = []
-    if (!endPosition) {
-      buttons.push(
-        <Button className={classes.bottomButton} key="addSegment" variant={'contained'} onClick={() => addSegment()}
+  function renderMapEditArea () {
+    return (
+      <div className={classes.buttonGroup}>
+        <Button className={classes.bottomButton} key="addSegment" variant={'contained'}
+                onClick={() => setStep(STEPS.CHOOSE_ROUTE)}
                 size={'small'} color={'primary'}>
-          Abschnitt hinzufügen
+          Strecke setzen
         </Button>
-      )
-      buttons.push(
-        <Button className={classes.bottomButton} key="endpoint" variant={'contained'}
-                color={'secondary'}
-                size={'small'}
-                onClick={() => {
-                  setStep(STEPS.CHOOSE_END_POINT)
-                  setSegmentIndexInEditMode(-1)
-                }}
-        >
-          Endpunkt
-        </Button>
-      )
-    }
-    else {
-      buttons.push(
+      </div>
+    )
+  }
+
+  function renderFinishArea () {
+    return (
+      <div className={classes.buttonGroup}>
         <Button className={classes.bottomButton} key="save" variant={'contained'}
                 color={'secondary'}
                 disabled
@@ -260,15 +131,53 @@ function Recording () {
                   // sendToServer()
                 }}
         >
-          Abschicken (noch nicht implementiert)
+          Speichern
         </Button>
+      </div>
+    )
+  }
+
+  function renderSegments () {
+    console.log('segments', segments)
+    const cards =
+      segments.map((segment, index) =>
+        [
+          <div style={{textAlign: 'center'}}>
+            <Tooltip title="Abschnitt einfügen">
+              <IconButton key={`segment_${index}_add`} component="span"
+
+                          onClick={() => addSegment(index)}>
+                <AddCircleIcon/>
+              </IconButton>
+            </Tooltip>
+          </div>,
+          <SegmentUI
+            key={`segment_${index}${segmentIndexInEditMode === index ? '_edit' : ''}`}
+            outerSegment={segment}
+            editMode={segmentIndexInEditMode === index}
+            onEdit={() => setSegmentIndexInEditMode(index)}
+            onDelete={() => {
+              removeSegment(segment)
+              setSegmentIndexInEditMode(-1)
+            }}
+            onUpdated={updatedSegment => {
+              updateSegment(index, updatedSegment)
+            }}
+            onDone={() => {
+              setSegmentIndexInEditMode(-1)
+            }}
+          />
+        ]
       )
-    }
+
     return (
-      <div style={{marginTop: 20}}>
+      <div style={{marginTop: 20}} key={'segments'}>
         {cards}
-        <div className={classes.bottomButtons}>
-          {buttons}
+        <div className={classes.buttonGroup}>
+          <Button className={classes.bottomButton} key="addSegment" variant={'contained'} onClick={() => addSegment()}
+                  size={'small'} color={'primary'}>
+            Abschnitt hinzufügen
+          </Button>
         </div>
       </div>
     )
@@ -276,14 +185,11 @@ function Recording () {
 
   function renderStep () {
     switch (step) {
-      case STEPS.CHOOSE_START_POINT:
-        return renderChooseStartPoint()
+      case STEPS.CHOOSE_ROUTE:
+        return renderEditMap()
 
-      case STEPS.ADD_SEGMENTS:
-        return renderRecording()
-
-      case STEPS.CHOOSE_END_POINT:
-        return renderChooseEndPoint()
+      case STEPS.MAIN_PAGE:
+        return renderEditMode()
 
       default:
         return 'Not yet implemented'

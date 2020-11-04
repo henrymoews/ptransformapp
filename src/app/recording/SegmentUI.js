@@ -124,7 +124,7 @@ export default function SegmentUI (
   }
 
   function toggleMainReason (boolPropertyName) {
-    segment.mainReason.toggleProperty(boolPropertyName)
+    // segment.mainReason.toggleProperty(boolPropertyName)
     onChange()
   }
 
