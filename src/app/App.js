@@ -51,7 +51,7 @@ function App() {
       <Router>
         <Route path='/' component={MainMenu} />
 
-        <Route path='/welcome' component={Wellcome} />
+        <Route path='/wellcome' component={Wellcome} />
 
         <Route exact path='/'>
           {renderAppState()}
