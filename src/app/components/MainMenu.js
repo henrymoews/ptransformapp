@@ -58,8 +58,8 @@ function MainMenu() {
             Home
             </NavLink>
           </MenuItem>
-          <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/welcome">
-            Welcome
+          <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/wellcome">
+            Wellcome
             </NavLink></MenuItem>
           <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/about">
            About

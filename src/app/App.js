@@ -12,7 +12,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 import Recording from './recording/Recording'
 import MainMenu from './components/MainMenu'
-import Welcome from './components/Welcome'
+import Wellcome from './components/Wellcome'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,7 +51,7 @@ function App() {
       <Router>
         <Route path='/' component={MainMenu} />
 
-        <Route path='/welcome' component={Welcome} />
+        <Route path='/welcome' component={Wellcome} />
 
         <Route exact path='/'>
           {renderAppState()}
