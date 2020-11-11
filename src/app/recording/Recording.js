@@ -72,7 +72,7 @@ function Recording () {
   function renderEditMap () {
     return (
       <div>
-        <PTMap key='map' onRouteChanged={(newRoute) => console.log('new route: ', newRoute)}/>
+        <PTMap key='map' onChange={console.log} onRouteChanged={(newRoute) => console.log('new route: ', newRoute)}/>
         <MapOverlay centered bottom={30}>
           <Paper zDepth={2}>
             <div className={'mediumPadding alignCenter'}>
