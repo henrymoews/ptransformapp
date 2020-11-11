@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react'
+import React from 'react'
 
 import Container from '@material-ui/core/Container'
 import Paper from '@material-ui/core/Paper'
@@ -7,7 +7,7 @@ import Paper from '@material-ui/core/Paper'
 
 
 
-function Wellcome() {
+function Welcome() {
 
   return (
     <Container maxWidth="sm">
@@ -21,4 +21,4 @@ function Wellcome() {
 
 }
 
-export default Wellcome;
+export default Welcome;

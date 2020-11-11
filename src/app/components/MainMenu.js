@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 import './components.css'
@@ -58,8 +58,8 @@ function MainMenu() {
             Home
             </NavLink>
           </MenuItem>
-          <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/wellcome">
-            Wellcome
+          <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/welcome">
+            Welcome
             </NavLink></MenuItem>
           <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/about">
            About
