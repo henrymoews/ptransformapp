@@ -21,10 +21,10 @@ L.Icon.Default.mergeOptions({
 const MAP_HEIGHT = 'calc(100vh - 64px)'  // fullscreen - app bar height
 const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berlin
 
-export default function PTMap ({onChange, geojson}) {
+export default function PTMap ({onChange, initialGeoJson}) {
 
   const editableFGRef = useRef(null)
-  const [mapCenter, _unused] = useState(calcCenterFromPolyline(geojson) || DEFAULT_MAP_CENTER)
+  const [mapCenter, _unused] = useState(calcCenterFromPolyline(initialGeoJson) || DEFAULT_MAP_CENTER)
 
   // see http://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event for leaflet-draw events doc
 
@@ -72,8 +72,8 @@ export default function PTMap ({onChange, geojson}) {
       return
     }
 
-    // populate the leaflet FeatureGroup with the geoJson layers
-    let leafletGeoJSON = new L.GeoJSON(geojson || getDefaultGeoJson())
+    // populate the leaflet FeatureGroup with the initialGeoJson layers
+    let leafletGeoJSON = new L.GeoJSON(initialGeoJson || getDefaultGeoJson())
     let leafletFG = reactFGref.leafletElement
 
     leafletGeoJSON.eachLayer((layer) => {
@@ -140,8 +140,8 @@ function getDefaultGeoJson () {
 }
 
 // TODO
-function calcCenterFromPolyline (geojson) {
-  if (!geojson || geojson.features.length === 0) {
+function calcCenterFromPolyline (geoJson) {
+  if (!geoJson || geoJson.features.length === 0) {
     return null
   }
   return DEFAULT_MAP_CENTER

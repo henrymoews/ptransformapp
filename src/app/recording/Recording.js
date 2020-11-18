@@ -45,7 +45,7 @@ const useStyles = makeStyles({
 function Recording () {
   const classes = useStyles()
 
-  const [route, setRoute] = useState([])
+  const [geoJson, setGeoJson] = useState(null)
   const [segments, setSegments] = useState(emptySegments())
   const [segmentIndexInEditMode, setSegmentIndexInEditMode] = useState(-1)
   const [step, setStep] = useState(STEPS.MAIN_PAGE)
@@ -69,10 +69,14 @@ function Recording () {
     forceUpdate()
   }
 
+  function hasRoute () {
+    return geoJson && geoJson.features.length > 0
+  }
+
   function renderEditMap () {
     return (
       <div>
-        <PTMap key='map' onChange={(e) => console.log('onChange', e)} polyline={null}/>
+        <PTMap key='map' onChange={setGeoJson} initialGeoJson={geoJson}/>
         <MapOverlay centered bottom={30}>
           <Paper zDepth={2}>
             <div className={'mediumPadding alignCenter'}>
@@ -85,7 +89,7 @@ function Recording () {
                 className={'button'}
                 endIcon={<ArrowForwardIcon/>}
                 onClick={() => setStep(STEPS.MAIN_PAGE)}
-                // disabled={!route.length < 2}
+                disabled={!hasRoute()}
               >
                 Fertig
               </Button>
@@ -115,7 +119,7 @@ function Recording () {
         <Button className={classes.bottomButton} key="addSegment" variant={'contained'}
                 onClick={() => setStep(STEPS.CHOOSE_ROUTE)}
                 size={'small'} color={'primary'}>
-          Strecke setzen
+          {hasRoute() ? 'Strecke ändern' : 'Strecke setzen'}
         </Button>
       </div>
     )
