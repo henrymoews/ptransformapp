@@ -1,13 +1,16 @@
 /**
  * Map taken and changed from here: https://github.com/alex3165/react-leaflet-draw/blob/HEAD/example/edit-control.js
+ *
+ * TODO: localize language: https://stackoverflow.com/a/53401594
  */
 
-import React, { useRef } from 'react'
-import { Map, TileLayer, FeatureGroup } from 'react-leaflet'
+import React, { useRef, useState } from 'react'
+import { FeatureGroup, Map, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import { EditControl } from 'react-leaflet-draw'
 
 // work around broken icons when using webpack, see https://github.com/PaulLeCam/react-leaflet/issues/255
+
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0/images/marker-icon.png',
@@ -15,79 +18,62 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0/images/marker-shadow.png',
 })
 
-let polyline
+const MAP_HEIGHT = 'calc(100vh - 64px)'  // fullscreen - app bar height
+const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berlin
 
-export default function EditControlExample ({onChange, onRouteChanged}) {
+export default function PTMap ({onChange, geojson}) {
 
-  const _editableFGRef = useRef(null)
+  const editableFGRef = useRef(null)
+  const [mapCenter, _unused] = useState(calcCenterFromPolyline(geojson) || DEFAULT_MAP_CENTER)
 
   // see http://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event for leaflet-draw events doc
 
   function _onEdited (e) {
-
-    let numEdited = 0
-    e.layers.eachLayer((layer) => {
-      numEdited += 1
-    })
-    console.log(`_onEdited: edited ${numEdited} layers`, e)
-
     _onChange()
   }
 
   function _onCreated (e) {
-    let type = e.layerType
-    let layer = e.layer
-    if (type === 'marker') {
-      // Do marker specific actions
-      console.log('_onCreated: marker created', e)
-    } else {
-      console.log('_onCreated: something else created:', type, e)
-      onRouteChanged(layer.editing.latlngs)
-    }
-    // Do whatever else you need to. (save to db; etc)
-
     _onChange()
   }
 
   function _onDeleted (e) {
-
-    let numDeleted = 0
-    e.layers.eachLayer((layer) => {
-      numDeleted += 1
-    })
-    console.log(`onDeleted: removed ${numDeleted} layers`, e)
-
     _onChange()
   }
 
   function _onMounted (drawControl) {
-    console.log('_onMounted', drawControl)
   }
 
-  function _onEditStart (e) {
-    console.log('_onEditStart', e)
+  function _onDrawStart (e) {
+    // allow only one polyline and clear the previous one - if exist
+    editableFGRef.current.leafletElement.clearLayers()
+    _onChange()
   }
 
-  function _onEditStop (e) {
-    console.log('_onEditStop', e)
-  }
-
-  function _onDeleteStart (e) {
-    console.log('_onDeleteStart', e)
-  }
-
-  function _onDeleteStop (e) {
-    console.log('_onDeleteStop', e)
-  }
+  // function _onEditStart (e) {
+  //   console.log('_onEditStart', e)
+  // }
+  //
+  // function _onEditStop (e) {
+  //   console.log('_onEditStop', e)
+  // }
+  //
+  // function _onDeleteStart (e) {
+  //   console.log('_onDeleteStart', e)
+  // }
+  //
+  // function _onDeleteStop (e) {
+  //   console.log('_onDeleteStop', e)
+  // }
 
   function _onFeatureGroupReady (reactFGref) {
+
     if (!reactFGref) {
+      // happens on leaving PTMap
       return
     }
 
     // populate the leaflet FeatureGroup with the geoJson layers
-
-    let leafletGeoJSON = new L.GeoJSON(getGeoJson())
+    let leafletGeoJSON = new L.GeoJSON(geojson || getDefaultGeoJson())
     let leafletFG = reactFGref.leafletElement
 
     leafletGeoJSON.eachLayer((layer) => {
@@ -95,25 +81,26 @@ export default function EditControlExample ({onChange, onRouteChanged}) {
     })
 
     // store the ref for future access to content
-    _editableFGRef.current = reactFGref
+    editableFGRef.current = reactFGref
   }
 
   function _onChange () {
 
-    // _editableFG contains the edited geometry, which can be manipulated through the leaflet API
-    if (!_editableFGRef.current || !onChange) {
+    // editableFGRef.current contains the edited geometry, which can be manipulated through the leaflet API
+
+    if (!editableFGRef.current || !onChange) {
       return
     }
 
-    const geojsonData = _editableFGRef.current.leafletElement.toGeoJSON()
+    const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
     onChange(geojsonData)
   }
 
   return (
-    <Map center={[52.530644, 13.383068]} zoom={18} zoomControl={true}>
+    <Map center={mapCenter} zoom={11} maxZoom={19} zoomControl={true} style={{height: MAP_HEIGHT}} >
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
       />
       <FeatureGroup ref={(reactFGref) => {_onFeatureGroupReady(reactFGref)}}>
         <EditControl
@@ -122,11 +109,13 @@ export default function EditControlExample ({onChange, onRouteChanged}) {
           onCreated={_onCreated}
           onDeleted={_onDeleted}
           onMounted={_onMounted}
-          onEditStart={_onEditStart}
-          onEditStop={_onEditStop}
-          onDeleteStart={_onDeleteStart}
-          onDeleteStop={_onDeleteStop}
+          onDrawStart={_onDrawStart}
+          // onEditStart={_onEditStart}
+          // onEditStop={_onEditStop}
+          // onDeleteStart={_onDeleteStart}
+          // onDeleteStop={_onDeleteStop}
           draw={{
+            polyline: true,   // let's draw only polylines for now
             rectangle: false,
             polygon: false,
             circle: false,
@@ -134,35 +123,26 @@ export default function EditControlExample ({onChange, onRouteChanged}) {
             circlemarker: false
           }}
           edit={{
-            remove: false
+            remove: false    // you cannot delete a polyline once created
           }}
         />
       </FeatureGroup>
     </Map>
   )
+
 }
 
-function getGeoJson () {
+function getDefaultGeoJson () {
   return {
     'type': 'FeatureCollection',
-    'features': [
-      {
-        'type': 'Feature',
-        'properties': {},
-        'geometry': {
-          'type': 'LineString',
-          'coordinates': [
-            //   [
-            //     -122.47979164123535,
-            //     37.830124319877235
-            //   ],
-            //   [
-            //     -122.47721672058105,
-            //     37.809377088502615
-            //   ]
-          ]
-        }
-      },
-    ]
+    'features': []
   }
+}
+
+// TODO
+function calcCenterFromPolyline (geojson) {
+  if (!geojson || geojson.features.length === 0) {
+    return null
+  }
+  return DEFAULT_MAP_CENTER
 }

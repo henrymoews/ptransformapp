@@ -72,11 +72,11 @@ function Recording () {
   function renderEditMap () {
     return (
       <div>
-        <PTMap key='map' onChange={console.log} onRouteChanged={(newRoute) => console.log('new route: ', newRoute)}/>
+        <PTMap key='map' onChange={(e) => console.log('onChange', e)} polyline={null}/>
         <MapOverlay centered bottom={30}>
           <Paper zDepth={2}>
             <div className={'mediumPadding alignCenter'}>
-              <div className={'minorHeader'}>Bitte setze die Route</div>
+              <div className={'minorHeader'}>Bitte lege die Strecke fest</div>
               <div className={'text'}>Klicke dafür auf das Liniensymbol oben rechts</div>
               <div className={'minorMargin'}/>
               <Button
