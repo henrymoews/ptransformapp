@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from 'react'
+import React, { useReducer, useState } from 'react'
 import PTMap from '../map/PTMap'
 import Paper from '@material-ui/core/Paper'
 import MapOverlay from '../map/MapOverlay'
@@ -6,18 +6,12 @@ import Button from '@material-ui/core/Button'
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward'
 import AddCircleIcon from '@material-ui/icons/AddCircle'
 import IconButton from '@material-ui/core/IconButton'
-import { emptySegments, nullNumber, nullPosition } from './TypeSupport'
+import { emptySegments } from './TypeSupport'
 import SegmentUI from './SegmentUI'
 import Segment, { SegmentType } from './Segment'
-import StartEndPointUI from './StartEndPointUI'
 import { httpRequest } from '../utils/http'
 import { makeStyles } from '@material-ui/core/styles'
-import orange from '@material-ui/core/colors/orange'
-import blue from '@material-ui/core/colors/blue'
-import green from '@material-ui/core/colors/green'
-import red from '@material-ui/core/colors/red'
 import Tooltip from '@material-ui/core/Tooltip'
-import { renderToStaticMarkup } from 'react-dom/server'
 
 const STEPS = Object.freeze({
   CHOOSE_ROUTE: Symbol('CHOOSE_START_POINT'),
@@ -116,7 +110,7 @@ function Recording () {
   function renderMapEditArea () {
     return (
       <div className={classes.buttonGroup}>
-        <Button className={classes.bottomButton} key="addSegment" variant={'contained'}
+        <Button className={classes.bottomButton} key="editRoute" variant={'contained'}
                 onClick={() => setStep(STEPS.CHOOSE_ROUTE)}
                 size={'small'} color={'primary'}>
           {hasRoute() ? 'Strecke ändern' : 'Strecke setzen'}
@@ -146,15 +140,15 @@ function Recording () {
     const cards =
       segments.map((segment, index) =>
         [
-          <div style={{textAlign: 'center'}}>
-            <Tooltip title="Abschnitt einfügen">
-              <IconButton key={`segment_${index}_add`} component="span"
-
-                          onClick={() => addSegment(index)}>
-                <AddCircleIcon/>
-              </IconButton>
-            </Tooltip>
-          </div>,
+          // <div style={{textAlign: 'center'}}>
+          //   <Tooltip title="Abschnitt einfügen">
+          //     <IconButton key={`segment_${index}_add`} component="span"
+          //
+          //                 onClick={() => addSegment(index)}>
+          //       <AddCircleIcon/>
+          //     </IconButton>
+          //   </Tooltip>
+          // </div>,
           <SegmentUI
             key={`segment_${index}${segmentIndexInEditMode === index ? '_edit' : ''}`}
             outerSegment={segment}
