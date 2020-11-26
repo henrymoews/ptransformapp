@@ -5,7 +5,7 @@
  */
 
 import React, { useRef, useState } from 'react'
-import { FeatureGroup, Map, TileLayer } from 'react-leaflet'
+import { FeatureGroup, Map, Polyline, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import { EditControl } from 'react-leaflet-draw'
 
@@ -93,15 +93,31 @@ export default function PTMap ({onChange, initialGeoJson}) {
     }
 
     const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
+    console.log('geojson', geojsonData)
     onChange(geojsonData)
   }
 
+  let randomPolylines = []
+  for (let i = 0; i < 10; i += 1) {
+
+    randomPolylines.push([
+      [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13],
+      [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13],
+      [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13]
+    ])
+  }
+
+  randomPolylines = randomPolylines.map(pos => <Polyline key={Math.random()} positions={pos}/>)
+
   return (
-    <Map center={mapCenter} zoom={11} maxZoom={19} zoomControl={true} style={{height: MAP_HEIGHT}} >
+    <Map center={mapCenter} zoom={11} maxZoom={19} zoomControl={true} style={{height: MAP_HEIGHT}}>
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
       />
+
+      {randomPolylines}
+
       <FeatureGroup ref={(reactFGref) => {_onFeatureGroupReady(reactFGref)}}>
         <EditControl
           position='topright'
