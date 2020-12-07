@@ -4,7 +4,7 @@
 
 /**
  *
- * @returns {Segment[]}
+ * @returns {Subsegment[]}
  */
 export function emptySegments() {
   return []

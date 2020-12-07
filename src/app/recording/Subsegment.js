@@ -24,7 +24,7 @@ export const PARKING_TYPE = Object.freeze({
   QUER: Symbol('QUER')
 })
 
-export default class Segment {
+export default class Subsegment {
 
   constructor (type = SegmentType.UNDEFINED) {
     this.type = type
@@ -36,11 +36,11 @@ export default class Segment {
 
   /**
    *
-   * @param segment {Segment | null}
-   * @returns {Segment}
+   * @param segment {Subsegment | null}
+   * @returns {Subsegment}
    */
   static fromSegment (segment) {
-    const result = new Segment()
+    const result = new Subsegment()
     if (segment) {
       result.type = segment.type
       result.parkingAllowed = segment.parkingAllowed

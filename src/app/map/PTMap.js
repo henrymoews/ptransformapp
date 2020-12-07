@@ -4,10 +4,11 @@
  * TODO: localize language: https://stackoverflow.com/a/53401594
  */
 
-import React, { useRef, useState } from 'react'
-import { FeatureGroup, Map, Polyline, TileLayer } from 'react-leaflet'
+import React, { useEffect, useRef, useState } from 'react'
+import { FeatureGroup, Map, Marker, Polyline, Polygon, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import { EditControl } from 'react-leaflet-draw'
+import { makeStyles } from '@material-ui/core/styles'
 
 // work around broken icons when using webpack, see https://github.com/PaulLeCam/react-leaflet/issues/255
 
@@ -19,12 +20,19 @@ L.Icon.Default.mergeOptions({
 })
 
 const MAP_HEIGHT = 'calc(100vh - 64px)'  // fullscreen - app bar height
+const MIN_ZOOM_FOR_EDITING = 17
 const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berlin
 
-export default function PTMap ({onChange, initialGeoJson}) {
+const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
+  'type': 'FeatureCollection',
+  'features': []
+}
 
+export default function PTMap ({selectedFeature, geojson, features, onSelectFeature, onCreateFeature}) {
+
+  const [showEditControl, setShowEditControl] = useState(false)
+  const [leafletGeojson, setLeafletGeoJson] =  useState(new L.GeoJSON(geojson))
   const editableFGRef = useRef(null)
-  const [mapCenter, _unused] = useState(calcCenterFromPolyline(initialGeoJson) || DEFAULT_MAP_CENTER)
 
   // see http://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event for leaflet-draw events doc
 
@@ -43,27 +51,25 @@ export default function PTMap ({onChange, initialGeoJson}) {
   function _onMounted (drawControl) {
   }
 
+  function _onMoveEnd (e) {
+    setShowEditControl(e.sourceTarget._zoom >= MIN_ZOOM_FOR_EDITING)
+    setFeaturesFromGeojson()
+  }
+
   function _onDrawStart (e) {
-    // allow only one polyline and clear the previous one - if exist
-    editableFGRef.current.leafletElement.clearLayers()
     _onChange()
   }
 
-  // function _onEditStart (e) {
-  //   console.log('_onEditStart', e)
-  // }
-  //
-  // function _onEditStop (e) {
-  //   console.log('_onEditStop', e)
-  // }
-  //
-  // function _onDeleteStart (e) {
-  //   console.log('_onDeleteStart', e)
-  // }
-  //
-  // function _onDeleteStop (e) {
-  //   console.log('_onDeleteStop', e)
-  // }
+  function _onDrawStop (e) {
+    // user finished drawing
+    console.log('on draw stop')
+    _onChange(true)
+  }
+
+  function _onEditStop (e) {
+    console.log('_onEditStop', e)
+    _onChange(true)
+  }
 
   function _onFeatureGroupReady (reactFGref) {
 
@@ -72,51 +78,126 @@ export default function PTMap ({onChange, initialGeoJson}) {
       return
     }
 
-    // populate the leaflet FeatureGroup with the initialGeoJson layers
-    let leafletGeoJSON = new L.GeoJSON(initialGeoJson || getDefaultGeoJson())
-    let leafletFG = reactFGref.leafletElement
-
-    leafletGeoJSON.eachLayer((layer) => {
-      leafletFG.addLayer(layer)
-    })
-
     // store the ref for future access to content
     editableFGRef.current = reactFGref
+
+    setFeaturesFromGeojson()
   }
 
-  function _onChange () {
-
+  function _onChange (notify = false) {
     // editableFGRef.current contains the edited geometry, which can be manipulated through the leaflet API
-
-    if (!editableFGRef.current || !onChange) {
+    if (!editableFGRef.current) {
       return
     }
 
-    const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
-    console.log('geojson', geojsonData)
-    onChange(geojsonData)
+    if (notify) {
+      const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
+      console.log('geojson', geojsonData)
+      onCreateFeature(geojsonData)
+    }
   }
 
-  let randomPolylines = []
-  for (let i = 0; i < 10; i += 1) {
+  function setFeaturesFromGeojson () {
+    if  (editableFGRef.current == null) {
+      // not yet ready
+      return
+    }
 
-    randomPolylines.push([
-      [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13],
-      [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13],
-      [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13], [Math.random() + 52, Math.random() + 13]
-    ])
+    // populate the leaflet FeatureGroup with the initialGeoJson layers
+    const leafletGeoJSON = leafletGeojson
+    const leafletFG = editableFGRef.current.leafletElement
+
+    leafletGeoJSON.eachLayer(layer => {
+      const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
+      if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
+        leafletFG.removeLayer(layer)
+        console.log('removing layer', layer)
+      }
+      else if (isInBounds && !leafletFG.hasLayer(layer._leaflet_id)) {
+        leafletFG.addLayer(layer)
+        console.log('adding layer', layer)
+      }
+    })
   }
 
-  randomPolylines = randomPolylines.map(pos => <Polyline key={Math.random()} positions={pos}/>)
+  // function getFeatureShapes () {
+  //   const shapes = features.map((feature, index) => {
+  //     console.log('feature', feature)
+  //     if (feature.type !== 'Feature') {
+  //       console.log('other type')
+  //       return null
+  //     }
+  //     switch (feature.geometry.type) {
+  //       case 'LineString':
+  //         return (
+  //           <Polyline
+  //             key={index}
+  //             color={feature === selectedFeature ? 'red' : 'black'}
+  //             onClick={() => onSelectFeature(feature)}
+  //             positions={feature.geometry.coordinates.map(L.GeoJSON.coordsToLatLng)}
+  //           />
+  //         )
+  //       case 'Polygon':
+  //         return (
+  //           <Polygon
+  //             key={index}
+  //             color={feature === selectedFeature ? 'red' : 'black'}
+  //             onClick={() => onSelectFeature(feature)}
+  //             positions={feature.geometry.coordinates.map(coords => coords.map(L.GeoJSON.coordsToLatLng))}
+  //           />
+  //         )
+  //       case 'Point':
+  //         console.log('marker pos ', feature.geometry.coordinates)
+  //         return (
+  //           <Marker
+  //             key={index}
+  //             color={feature === selectedFeature ? 'red' : 'black'}
+  //             onClick={() => onSelectFeature(feature)}
+  //             position={L.GeoJSON.coordsToLatLng(feature.geometry.coordinates)}
+  //           />
+  //         )
+  //       default:
+  //         console.log('skip not supported feature type')
+  //         return null
+  //     }
+  //   }).filter(Boolean)
+  //
+  //   console.log('shapes', shapes)
+  //   return shapes
+  // }
 
+  function getDrawOptions() {
+    return {
+      polyline: showEditControl,
+      polygon: showEditControl,
+      rectangle: false,
+      circle: false,
+        marker: false,
+      circlemarker: false
+    }
+  }
+
+  function getEditOptions() {
+    return {
+      edit: showEditControl,
+      remove: showEditControl
+    }
+  }
+
+  console.log('hidden? ' + !editableFGRef.current || editableFGRef.current.leafletElement._map._zoom <= 16)
   return (
-    <Map center={mapCenter} zoom={11} maxZoom={19} zoomControl={true} style={{height: MAP_HEIGHT}}>
+    <Map
+      center={DEFAULT_MAP_CENTER}
+      zoom={11}
+      maxZoom={19}
+      zoomControl={true}
+      style={{height: MAP_HEIGHT}}
+      onMoveEnd={_onMoveEnd}
+    >
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
       />
-
-      {randomPolylines}
 
       <FeatureGroup ref={(reactFGref) => {_onFeatureGroupReady(reactFGref)}}>
         <EditControl
@@ -126,39 +207,16 @@ export default function PTMap ({onChange, initialGeoJson}) {
           onDeleted={_onDeleted}
           onMounted={_onMounted}
           onDrawStart={_onDrawStart}
+          onDrawStop={_onDrawStop}
           // onEditStart={_onEditStart}
-          // onEditStop={_onEditStop}
-          // onDeleteStart={_onDeleteStart}
-          // onDeleteStop={_onDeleteStop}
-          draw={{
-            polyline: true,   // let's draw only polylines for now
-            rectangle: false,
-            polygon: false,
-            circle: false,
-            marker: false,
-            circlemarker: false
-          }}
-          edit={{
-            remove: false    // you cannot delete a polyline once created
-          }}
+          onEditStop={_onEditStop}
+          // onDeleteStart={() => console.log('on delete start')}
+          // onDeleteStop={() => console.log('on delete stop')}
+          draw={getDrawOptions()}
+          edit={getEditOptions()}
         />
       </FeatureGroup>
     </Map>
   )
 
-}
-
-function getDefaultGeoJson () {
-  return {
-    'type': 'FeatureCollection',
-    'features': []
-  }
-}
-
-// TODO
-function calcCenterFromPolyline (geoJson) {
-  if (!geoJson || geoJson.features.length === 0) {
-    return null
-  }
-  return DEFAULT_MAP_CENTER
 }

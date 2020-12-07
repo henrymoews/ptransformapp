@@ -12,7 +12,7 @@ import orange from '@material-ui/core/colors/orange'
 import blue from '@material-ui/core/colors/blue'
 import green from '@material-ui/core/colors/green'
 import red from '@material-ui/core/colors/red'
-import Segment, { PARKING_ALLOWED, PARKING_TYPE, SegmentType } from './Segment'
+import Subsegment, { PARKING_ALLOWED, PARKING_TYPE, SegmentType } from './Subsegment'
 import FolderSpecialIcon from '@material-ui/icons/FolderSpecial'
 import BlockIcon from '@material-ui/icons/Block'
 import { PropertyNames } from './MainReason'
@@ -74,7 +74,7 @@ const useStyles = makeStyles({
 
 /**
  *
- * @param segment {Segment}
+ * @param segment {Subsegment}
  * @param onEdit {function}
  * @param onDelete {function}
  * @param editMode {boolean}
@@ -83,7 +83,7 @@ const useStyles = makeStyles({
  * @returns {node}
  * @constructor
  */
-export default function SegmentUI (
+export default function SubsegmentUI (
   {
     outerSegment,
     onEdit,
@@ -96,7 +96,7 @@ export default function SegmentUI (
 
   const classes = useStyles()
 
-  const [segment, setSegment] = useState(Segment.fromSegment(outerSegment))
+  const [segment, setSegment] = useState(Subsegment.fromSegment(outerSegment))
   const [goingToDelete, setGoingToDelete] = useState(false)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
 
