@@ -1,5 +1,4 @@
-//const baseURL = "https://parkplatztransform-api.herokuapp.com"
-const baseURL = "http://localhost:8023"
+const baseURL = "https://parkplatztransform-api.herokuapp.com"
 
 export const routes = {
   users: `${baseURL}/users/`,

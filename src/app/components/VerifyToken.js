@@ -4,7 +4,7 @@ import { useGet } from 'restful-react';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { routes } from '../../api'
+import { routes } from '../../helpers/api'
 import { setAuthCookie } from '../../helpers/auth'
 import { useLocation, Redirect } from 'react-router-dom'
 

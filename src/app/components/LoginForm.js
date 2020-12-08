@@ -8,7 +8,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import { routes, headers } from '../../api'
+import { routes, headers } from '../../helpers/api'
 
 const FORM_STATE = Object.freeze({
   INITIAL: Symbol('INITIAL'),
