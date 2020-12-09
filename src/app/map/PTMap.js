@@ -120,19 +120,23 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
     console.log('setting features from geojson', geoJson)
     const leafletGeojson = new L.GeoJSON(geoJson)
 
+
     // populate the leaflet FeatureGroup with the initialGeoJson layers
     const leafletFG = editableFGRef.current.leafletElement
+    leafletFG.clearLayers()
     leafletGeojson.eachLayer(layer => {
       console.log('layer id', layer.feature.id, ' vs ', selectedFeatureId)
       layer.setStyle({color: layer.feature.id === selectedFeatureId ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
       const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
-      if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
-        layer.off("click")
-        leafletFG.removeLayer(layer)
-        // console.log('removing layer', layer)
-      }
-      else if (isInBounds && !leafletFG.hasLayer(layer._leaflet_id)) {
+      // if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
+      //   layer.off("click")
+      //   leafletFG.removeLayer(layer)
+      //   // console.log('removing layer', layer)
+      // }
+      // else if (isInBounds && !leafletFG.hasLayer(layer._leaflet_id)) {
+      if (isInBounds) {
         leafletFG.addLayer(layer)
+        layer.off("click")
         layer.on("click", function (event) {
           onSelectFeatureById(layer.feature.id)
         });
