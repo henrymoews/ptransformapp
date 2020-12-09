@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
 })
 
 const MAP_HEIGHT = 'calc(100vh - 64px)'  // fullscreen - app bar height
-const MIN_ZOOM_FOR_EDITING = 17
+const MIN_ZOOM_FOR_EDITING = 16
 const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berlin
 
 const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
@@ -28,11 +28,15 @@ const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
   'features': []
 }
 
-export default function PTMap ({selectedFeature, geojson, features, onSelectFeature, onCreateFeature}) {
+export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFeaturesEdited, onFeatureCreated}) {
 
   const [showEditControl, setShowEditControl] = useState(false)
-  const [leafletGeojson, setLeafletGeoJson] =  useState(new L.GeoJSON(geojson))
   const editableFGRef = useRef(null)
+
+  useEffect(() => {
+    setFeaturesFromGeojson()
+  }, [geoJson])
+
 
   // see http://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event for leaflet-draw events doc
 
@@ -56,14 +60,21 @@ export default function PTMap ({selectedFeature, geojson, features, onSelectFeat
     setFeaturesFromGeojson()
   }
 
-  function _onDrawStart (e) {
+  function _onDrawStart (e, f) {
+    console.log('on draw start', e)
+    console.log('on draw start2', f)
     _onChange()
   }
 
   function _onDrawStop (e) {
     // user finished drawing
-    console.log('on draw stop')
-    _onChange(true)
+    console.log('on draw stop', e)
+
+    const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
+    const newFeature = geojsonData.features[geojsonData.features.length -1]
+    console.log('newFeature', newFeature)
+    onFeatureCreated(newFeature)
+
   }
 
   function _onEditStop (e) {
@@ -93,7 +104,7 @@ export default function PTMap ({selectedFeature, geojson, features, onSelectFeat
     if (notify) {
       const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
       console.log('geojson', geojsonData)
-      onCreateFeature(geojsonData)
+      onFeaturesEdited(geojsonData)
     }
   }
 
@@ -103,68 +114,27 @@ export default function PTMap ({selectedFeature, geojson, features, onSelectFeat
       return
     }
 
-    // populate the leaflet FeatureGroup with the initialGeoJson layers
-    const leafletGeoJSON = leafletGeojson
-    const leafletFG = editableFGRef.current.leafletElement
+    console.log('setting features from geojson', geoJson)
+    const leafletGeojson = new L.GeoJSON(geoJson)
 
-    leafletGeoJSON.eachLayer(layer => {
+    // populate the leaflet FeatureGroup with the initialGeoJson layers
+    const leafletFG = editableFGRef.current.leafletElement
+    leafletGeojson.eachLayer(layer => {
       const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
       if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
+        layer.off("click")
         leafletFG.removeLayer(layer)
-        console.log('removing layer', layer)
+        // console.log('removing layer', layer)
       }
       else if (isInBounds && !leafletFG.hasLayer(layer._leaflet_id)) {
         leafletFG.addLayer(layer)
-        console.log('adding layer', layer)
+        layer.on("click", function (event) {
+          onSelectFeature(layer)
+        });
+        // console.log('adding layer', layer)
       }
     })
   }
-
-  // function getFeatureShapes () {
-  //   const shapes = features.map((feature, index) => {
-  //     console.log('feature', feature)
-  //     if (feature.type !== 'Feature') {
-  //       console.log('other type')
-  //       return null
-  //     }
-  //     switch (feature.geometry.type) {
-  //       case 'LineString':
-  //         return (
-  //           <Polyline
-  //             key={index}
-  //             color={feature === selectedFeature ? 'red' : 'black'}
-  //             onClick={() => onSelectFeature(feature)}
-  //             positions={feature.geometry.coordinates.map(L.GeoJSON.coordsToLatLng)}
-  //           />
-  //         )
-  //       case 'Polygon':
-  //         return (
-  //           <Polygon
-  //             key={index}
-  //             color={feature === selectedFeature ? 'red' : 'black'}
-  //             onClick={() => onSelectFeature(feature)}
-  //             positions={feature.geometry.coordinates.map(coords => coords.map(L.GeoJSON.coordsToLatLng))}
-  //           />
-  //         )
-  //       case 'Point':
-  //         console.log('marker pos ', feature.geometry.coordinates)
-  //         return (
-  //           <Marker
-  //             key={index}
-  //             color={feature === selectedFeature ? 'red' : 'black'}
-  //             onClick={() => onSelectFeature(feature)}
-  //             position={L.GeoJSON.coordsToLatLng(feature.geometry.coordinates)}
-  //           />
-  //         )
-  //       default:
-  //         console.log('skip not supported feature type')
-  //         return null
-  //     }
-  //   }).filter(Boolean)
-  //
-  //   console.log('shapes', shapes)
-  //   return shapes
-  // }
 
   function getDrawOptions() {
     return {
@@ -172,7 +142,7 @@ export default function PTMap ({selectedFeature, geojson, features, onSelectFeat
       polygon: showEditControl,
       rectangle: false,
       circle: false,
-        marker: false,
+      marker: false,
       circlemarker: false
     }
   }
