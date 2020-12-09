@@ -29,5 +29,10 @@ export async function getSegments(boundingBox) {
 }
 
 export async function deleteSegments(segmentId) {
-  console.log('Not yet implemented: deleteSegments')
+  const response = await fetch(`routes.segments${segmentId}`, { 
+    method: 'DELETE',
+    headers: headers(),
+    body: JSON.stringify(segment)
+  })
+  return await response.json()
 }
