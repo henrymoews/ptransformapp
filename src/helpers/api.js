@@ -1,4 +1,6 @@
-const baseURL = "https://parkplatztransform-api.herokuapp.com"
+import { getUserDataFromCookie } from './auth'
+
+const baseURL = 'https://parkplatztransform-api.herokuapp.com'
 
 export const routes = {
   users: `${baseURL}/users/`,
@@ -6,15 +8,24 @@ export const routes = {
   segments: `${baseURL}/segments/`
 }
 
-export const headers = {
-  contentJSON: new Headers({ 'Content-Type': 'application/json' })
-}
+export const headers = () => new Headers({ 
+  'Content-Type': 'application/json',
+  'Authorization': `bearer ${getUserDataFromCookie()?.token}`
+})
 
 export async function postSegment(segment) {
-  console.log('Not yet implemented: postSegments')
-  const segmentToReturn = Object.assign({}, segment)
-  segmentToReturn.id  = Math.floor(Math.random() * 1000)
-  return segmentToReturn
+  const response = await fetch(routes.segments, { 
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(segment)
+  })
+  return await response.json()
+}
+
+export async function getSegments(boundingBox) {
+  const url = boundingBox ? `${routes.segments}?=${boundingBox}` : routes.segments
+  const response = await fetch(url)
+  return await response.json()
 }
 
 export async function deleteSegments(segmentId) {

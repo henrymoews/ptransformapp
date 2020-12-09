@@ -16,7 +16,7 @@ export function getUserDataFromCookie() {
     return {
       loggedIn: true,
       email: sub,
-      token: match[0],
+      token: match[1],
     }
   } else {
     return {
