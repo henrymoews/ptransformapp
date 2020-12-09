@@ -293,7 +293,7 @@ function Recording () {
   const [geoJson, setGeoJson] = useState(EXAMPLE_GEOJSON)
   const [currentSubsegments, setCurrentSubsegments] = useState(emptySegments())
   const [subsegmentIndexInEditMode, setSubsegmentIndexInEditMode] = useState(-1)
-  const [selectedSegment, setSelectedSegment] = useState(null)
+  const [selectedSegmentId, setSelectedSegmentId] = useState(null)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
 
@@ -320,6 +320,7 @@ function Recording () {
     const newGeoJson = Object.assign({}, geoJson)
     newGeoJson.features.push(createdFeature)
     setGeoJson(newGeoJson)
+    setSelectedSegmentId(createdFeature.id)
   }
 
   function onFeaturesChanged(changedGeojson) {
@@ -332,20 +333,21 @@ function Recording () {
         return false
       })
     }
-    // setSelectedSegment(segment)
+    // setSelectedSegmentId(segment)
   }
 
   function cancelEditing () {
-    setSelectedSegment(null)
+    setSelectedSegmentId(null)
   }
 
   function renderMapView () {
+    console.log('selectedSegmentId', selectedSegmentId)
     return (
       <div>
         <PTMap
           key='map'
-          selectedFeature={selectedSegment}
-          onSelectFeature={setSelectedSegment}
+          selectedFeatureId={selectedSegmentId}
+          onSelectFeatureById={setSelectedSegmentId}
           onFeaturesEdited={onFeaturesChanged}
           onFeatureCreated={onFeatureCreated}
           geoJson={geoJson}
@@ -355,7 +357,7 @@ function Recording () {
   }
 
   function renderFormView () {
-    if (!selectedSegment) {
+    if (!selectedSegmentId) {
       return (
         <div>
           <div className={classes.verticalSpace} />

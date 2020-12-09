@@ -23,12 +23,15 @@ const MAP_HEIGHT = 'calc(100vh - 64px)'  // fullscreen - app bar height
 const MIN_ZOOM_FOR_EDITING = 16
 const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berlin
 
+const SELECTED_FEATURE_COLOR = "red"
+const UNSELECTED_FEATURE_COLOR = "#3388ff"  // default blue
+
 const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
   'type': 'FeatureCollection',
   'features': []
 }
 
-export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFeaturesEdited, onFeatureCreated}) {
+export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId, onFeaturesEdited, onFeatureCreated}) {
 
   const [showEditControl, setShowEditControl] = useState(false)
   const editableFGRef = useRef(null)
@@ -120,6 +123,8 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
     // populate the leaflet FeatureGroup with the initialGeoJson layers
     const leafletFG = editableFGRef.current.leafletElement
     leafletGeojson.eachLayer(layer => {
+      console.log('layer id', layer.feature.id, ' vs ', selectedFeatureId)
+      layer.setStyle({color: layer.feature.id === selectedFeatureId ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
       const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
       if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
         layer.off("click")
@@ -129,7 +134,7 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
       else if (isInBounds && !leafletFG.hasLayer(layer._leaflet_id)) {
         leafletFG.addLayer(layer)
         layer.on("click", function (event) {
-          onSelectFeature(layer)
+          onSelectFeatureById(layer.feature.id)
         });
         // console.log('adding layer', layer)
       }
