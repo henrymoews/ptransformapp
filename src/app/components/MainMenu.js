@@ -11,6 +11,8 @@ import Typography from '@material-ui/core/Typography'
 import MenuIcon from '@material-ui/icons/Menu'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import LoginForm from './LoginForm'
+import { getUserDataFromCookie } from '../../helpers/auth'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -29,7 +31,9 @@ const useStyles = makeStyles((theme) => ({
 
 function MainMenu() {
   const classes = useStyles()
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const [loginModalOpen, setLoginModalOpen] = React.useState(false)
+  const userData = getUserDataFromCookie()
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -39,13 +43,13 @@ function MainMenu() {
     setAnchorEl(null);
   };
 
-
   return (
     <AppBar position="static">
       <Toolbar>
         <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" aria-controls="simple-menu" aria-haspopup="true" onClick={handleClick}>
           <MenuIcon />
         </IconButton>
+        <LoginForm open={loginModalOpen} setOpen={setLoginModalOpen} />
         <Menu
           id="simple-menu"
           anchorEl={anchorEl}
@@ -56,7 +60,7 @@ function MainMenu() {
           <MenuItem onClick={handleClose}>
           <NavLink  activeClassName="is-active" to="/">
             Home
-            </NavLink>
+          </NavLink>
           </MenuItem>
           <MenuItem onClick={handleClose}><NavLink activeClassName="is-active" to="/welcome">
             Welcome
@@ -67,8 +71,9 @@ function MainMenu() {
         </Menu>
         <Typography variant="h6" className={classes.title}>
           ParkplatzTransform
-              </Typography>
-        <Button color="inherit">Login</Button>
+        </Typography>
+        {!userData.loggedIn && <Button color="inherit" onClick={() => setLoginModalOpen(true)}>Login</Button>}
+        {userData.loggedIn && userData.email}
       </Toolbar>
     </AppBar>
   );
