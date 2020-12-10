@@ -1,4 +1,4 @@
-import React, { useReducer, useState, useRef } from 'react'
+import React, { useReducer, useState, useRef, useEffect } from 'react'
 import PTMap from '../map/PTMap'
 import Paper from '@material-ui/core/Paper'
 import MapOverlay from '../map/MapOverlay'
@@ -8,7 +8,7 @@ import { emptySegments } from './TypeSupport'
 import SubsegmentUI from './SubsegmentUI'
 import Subsegment, { SegmentType } from './Subsegment'
 import { makeStyles } from '@material-ui/core/styles'
-import { postSegment } from '../../helpers/api'
+import { getSegments, postSegment } from '../../helpers/api'
 
 const EXAMPLE_GEOJSON = {
   'type': 'FeatureCollection',
@@ -296,6 +296,14 @@ function Recording () {
   const [selectedSegmentId, setSelectedSegmentId] = useState(null)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
+
+  useEffect(() => {
+    async function load () {
+      const geojson = await getSegments()
+      setGeoJson(geojson)
+    }
+    load()
+  })
 
   function updateSubsegment (index, segment) {
     setCurrentSubsegments([segment])
