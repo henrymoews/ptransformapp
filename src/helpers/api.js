@@ -36,8 +36,7 @@ export async function getSegment(segmentId) {
 export async function deleteSegments(segmentId) {
   const response = await fetch(`routes.segments${segmentId}`, { 
     method: 'DELETE',
-    headers: headers(),
-    body: JSON.stringify(segment)
+    headers: headers()
   })
   return await response.json()
 }
