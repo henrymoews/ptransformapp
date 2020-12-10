@@ -303,7 +303,7 @@ function Recording () {
       setGeoJson(geojson)
     }
     load()
-  })
+  }, [])
 
   function updateSubsegment (index, segment) {
     setCurrentSubsegments([segment])
