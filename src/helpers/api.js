@@ -28,6 +28,11 @@ export async function getSegments(boundingBox) {
   return await response.json()
 }
 
+export async function getSegment(segmentId) {
+  const response = await fetch(`routes.segments${segmentId}`)
+  return await response.json()
+}
+
 export async function deleteSegments(segmentId) {
   const response = await fetch(`routes.segments${segmentId}`, { 
     method: 'DELETE',
@@ -36,3 +41,13 @@ export async function deleteSegments(segmentId) {
   })
   return await response.json()
 }
+
+export async function updateSegments(segmentId, segment) {
+  const response = await fetch(`routes.segments${segmentId}`, { 
+    method: 'PUT',
+    headers: headers(),
+    body: JSON.stringify(segment)
+  })
+  return await response.json()
+}
+
