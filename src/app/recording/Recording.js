@@ -316,7 +316,7 @@ function Recording () {
   }
 
   async function onFeatureCreated (feature) {
-    const createdFeature = await postSegment(feature)
+    const createdFeature = await postSegment({ ...feature, properties: { subsegments: [] } })
     const newGeoJson = Object.assign({}, geoJson)
     newGeoJson.features.push(createdFeature)
     setGeoJson(newGeoJson)
