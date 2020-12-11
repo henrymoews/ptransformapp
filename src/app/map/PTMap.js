@@ -118,6 +118,9 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
     }
 
     console.log('setting features from geojson', geoJson)
+    // TODO: In order to make editing lines work again,
+    //       new L.GeoJSON(geoJson) must be moved somewhere else and being done everytime in this function
+    //       afterwards use the commented lines from below again
     const leafletGeojson = new L.GeoJSON(geoJson)
 
 
