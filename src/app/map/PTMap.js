@@ -111,6 +111,12 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
     }
   }
 
+  /**
+   * TODO: In order to make editing lines work again, this function must not be doing anything
+   *       after editing / drawing started.
+   *       Also, getDrawOptions and getEditOptions must be stable during editing / drawing for not losing the tools
+   *       on zoom change.
+   */
   function setFeaturesFromGeojson () {
     if  (editableFGRef.current == null) {
       // not yet ready
@@ -118,9 +124,6 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
     }
 
     console.log('setting features from geojson', geoJson)
-    // TODO: In order to make editing lines work again,
-    //       new L.GeoJSON(geoJson) must be moved somewhere else and being done everytime in this function
-    //       afterwards use the commented lines from below again
     const leafletGeojson = new L.GeoJSON(geoJson)
 
 
