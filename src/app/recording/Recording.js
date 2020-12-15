@@ -297,14 +297,6 @@ function Recording () {
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
 
-  useEffect(() => {
-    async function load () {
-      const geojson = await getSegments()
-      setGeoJson(geojson)
-    }
-    load()
-  }, [])
-
   function updateSubsegment (index, segment) {
     setCurrentSubsegments([segment])
     const segmentsCopy = [...currentSubsegments]
@@ -331,6 +323,16 @@ function Recording () {
     setSelectedSegmentId(createdFeature.id)
   }
 
+  async function onBoundsChange(bounds) {
+    const topRight = `${bounds._northEast.lng},${bounds._northEast.lat}`
+    const bottomRight = `${bounds._southWest.lng},${bounds._northEast.lat}`
+    const bottomLeft = `${bounds._southWest.lng},${bounds._southWest.lat}`
+    const topLeft = `${bounds._northEast.lng},${bounds._southWest.lat}`
+    const boundingBox = `${topRight},${bottomRight},${bottomLeft},${topLeft},${topRight}`
+    const geojson = await getSegments(boundingBox)
+    setGeoJson(geojson)
+  }
+
   function onFeaturesEdited(changedGeojson) {
     // TODO: merge existing geoJson with new geoJson
     setSelectedSegmentId(null)
@@ -350,6 +352,7 @@ function Recording () {
           onSelectFeatureById={setSelectedSegmentId}
           onFeaturesEdited={onFeaturesEdited}
           onFeatureCreated={onFeatureCreated}
+          onBoundsChanged={onBoundsChange}
           geoJson={geoJson}
         />
       </div>
