@@ -31,7 +31,7 @@ const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
   'features': []
 }
 
-export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId, onFeaturesEdited, onFeatureCreated}) {
+export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId, onFeaturesEdited, onFeatureCreated, onBoundsChanged}) {
 
   const [showEditControl, setShowEditControl] = useState(false)
   const editableFGRef = useRef(null)
@@ -56,11 +56,13 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
   }
 
   function _onMounted (drawControl) {
+    onBoundsChanged(drawControl._map.getBounds())
   }
 
   function _onMoveEnd (e) {
     setShowEditControl(e.sourceTarget._zoom >= MIN_ZOOM_FOR_EDITING)
     setFeaturesFromGeojson()
+    onBoundsChanged(e.sourceTarget.getBounds())
   }
 
   function _onDrawStart (e, f) {
@@ -172,6 +174,7 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
       zoomControl={true}
       style={{height: MAP_HEIGHT}}
       onMoveEnd={_onMoveEnd}
+      onZoomEnd={_onMoveEnd}
     >
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

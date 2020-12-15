@@ -1,6 +1,7 @@
 import { getUserDataFromCookie } from './auth'
 
 const baseURL = 'https://parkplatztransform-api.herokuapp.com'
+//const baseURL = 'http://localhost:8023'
 
 export const routes = {
   users: `${baseURL}/users/`,
@@ -23,7 +24,7 @@ export async function postSegment(segment) {
 }
 
 export async function getSegments(boundingBox) {
-  const url = boundingBox ? `${routes.segments}?=${boundingBox}` : routes.segments
+  const url = boundingBox ? `${routes.segments}?bbox=${boundingBox}` : routes.segments
   const response = await fetch(url)
   return await response.json()
 }
