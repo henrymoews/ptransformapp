@@ -9,6 +9,7 @@ import SubsegmentUI from './SubsegmentUI'
 import Subsegment, { SegmentType } from './Subsegment'
 import { makeStyles } from '@material-ui/core/styles'
 import { getSegments, postSegment } from '../../helpers/api'
+import { bboxContainsBBox, bboxIntersectsBBox } from '../../helpers/geocalc'
 
 const EMPTY_GEOJSON = {
   'type': 'FeatureCollection',
