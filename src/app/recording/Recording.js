@@ -10,6 +10,7 @@ import Subsegment, { SegmentType } from './Subsegment'
 import { makeStyles } from '@material-ui/core/styles'
 import { getSegments, postSegment } from '../../helpers/api'
 import { bboxContainsBBox, bboxIntersectsBBox } from '../../helpers/geocalc'
+import SegmentForm from '../components/SegmentForm'
 
 const EMPTY_GEOJSON = {
   'type': 'FeatureCollection',
@@ -295,7 +296,7 @@ function Recording () {
   const geoJsonRef = useRef(EMPTY_GEOJSON)
   const [currentSubsegments, setCurrentSubsegments] = useState(emptySegments())
   const [subsegmentIndexInEditMode, setSubsegmentIndexInEditMode] = useState(-1)
-  const [selectedSegmentId, setSelectedSegmentId] = useState(null)
+  const [selectedSegment, setSelectedSegment] = useState(null)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
 
@@ -324,7 +325,7 @@ function Recording () {
     const newGeoJson = Object.assign({}, geoJson)
     newGeoJson.features.push(createdFeature)
     setGeoJson(newGeoJson)
-    setSelectedSegmentId(createdFeature.id)
+    setSelectedSegment(createdFeature)
   }
 
   async function onBoundsChange (bounds) {
@@ -359,7 +360,7 @@ function Recording () {
 
   function onFeaturesEdited (changedGeojson) {
     // TODO: merge existing geoJson with new geoJson
-    setSelectedSegmentId(null)
+    setSelectedSegment(null)
   }
 
   function checkIfBoundingBoxWasRequestedBefore (boundingBox) {
@@ -398,17 +399,16 @@ function Recording () {
   }
 
   function cancelEditing () {
-    setSelectedSegmentId(null)
+    setSelectedSegment(null)
   }
 
   function renderMapView () {
-    console.log('selectedSegmentId', selectedSegmentId)
     return (
       <div>
         <PTMap
           key='map'
-          selectedFeatureId={selectedSegmentId}
-          onSelectFeatureById={setSelectedSegmentId}
+          selectedFeatureId={selectedSegment}
+          onSelectFeature={setSelectedSegment}
           onFeaturesEdited={onFeaturesEdited}
           onFeatureCreated={onFeatureCreated}
           onBoundsChanged={onBoundsChange}
@@ -419,7 +419,7 @@ function Recording () {
   }
 
   function renderFormView () {
-    if (!selectedSegmentId) {
+    if (!selectedSegment) {
       return (
         <div>
           <div className={classes.verticalSpace}/>
@@ -430,31 +430,32 @@ function Recording () {
 
       )
     }
-    return (
-      <div>
-        <div className={classes.header}>Streckenabschnitte</div>
-        {renderSegments()}
-
-        <div className={classes.verticalSpace}/>
-        <div className={classes.buttonGroup}>
-          <Button className={classes.bottomButton} key='cancel' variant={'text'}
-                  color={'secondary'}
-                  onClick={cancelEditing}
-          >
-            Abbrechen
-          </Button>
-          <Button className={classes.bottomButton} key='save' variant={'text'}
-                  color={'primary'}
-                  disabled={!isChanged}
-                  onClick={() => {
-                    // sendToServer()
-                  }}
-          >
-            Speichern
-          </Button>
-        </div>
-      </div>
-    )
+    return <SegmentForm segment={selectedSegment}/>
+    // return (
+    //   <div>
+    //     <div className={classes.header}>Streckenabschnitte</div>
+    //     {renderSegments()}
+    //
+    //     <div className={classes.verticalSpace}/>
+    //     <div className={classes.buttonGroup}>
+    //       <Button className={classes.bottomButton} key='cancel' variant={'text'}
+    //               color={'secondary'}
+    //               onClick={cancelEditing}
+    //       >
+    //         Abbrechen
+    //       </Button>
+    //       <Button className={classes.bottomButton} key='save' variant={'text'}
+    //               color={'primary'}
+    //               disabled={!isChanged}
+    //               onClick={() => {
+    //                 // sendToServer()
+    //               }}
+    //       >
+    //         Speichern
+    //       </Button>
+    //     </div>
+    //   </div>
+    // )
   }
 
   function renderSegments () {

@@ -31,7 +31,7 @@ const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
   'features': []
 }
 
-export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId, onFeaturesEdited, onFeatureCreated, onBoundsChanged}) {
+export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFeaturesEdited, onFeatureCreated, onBoundsChanged}) {
 
   const [showEditControl, setShowEditControl] = useState(false)
   const editableFGRef = useRef(null)
@@ -133,8 +133,7 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
     const leafletFG = editableFGRef.current.leafletElement
     leafletFG.clearLayers()
     leafletGeojson.eachLayer(layer => {
-      console.log('layer id', layer.feature.id, ' vs ', selectedFeatureId)
-      layer.setStyle({color: layer.feature.id === selectedFeatureId ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
+      layer.setStyle({color: selectedFeature && selectedFeature.id === layer.feature.id ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
       const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
       // if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
       //   layer.off("click")
@@ -146,7 +145,7 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
         leafletFG.addLayer(layer)
         layer.off("click")
         layer.on("click", function (event) {
-          onSelectFeatureById(layer.feature.id)
+          onSelectFeature(layer.feature)
         });
         // console.log('adding layer', layer)
       }
