@@ -167,7 +167,7 @@ export default function PTMap ({geoJson, onSelectFeatureById, selectedFeatureId,
   function getEditOptions() {
     return {
       edit: showEditControl,
-      remove: showEditControl
+      remove: false
     }
   }
 
