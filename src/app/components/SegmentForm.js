@@ -148,6 +148,8 @@ export default function SegmentForm ({segment, onSave}) {
         Abschnitt hinzufügen
       </Button>
 
+      <br />
+      <br />
       Hier unten erscheinen dann die Details
     </div>
   )
