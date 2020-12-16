@@ -4,45 +4,45 @@ import Paper from '@material-ui/core/Paper'
 import MapOverlay from '../map/MapOverlay'
 import Button from '@material-ui/core/Button'
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward'
-import { emptySegments } from './TypeSupport'
+import { emptyBoundsArray, emptySegments } from './TypeSupport'
 import SubsegmentUI from './SubsegmentUI'
 import Subsegment, { SegmentType } from './Subsegment'
 import { makeStyles } from '@material-ui/core/styles'
 import { getSegments, postSegment } from '../../helpers/api'
 
-const EXAMPLE_GEOJSON = {
+const EMPTY_GEOJSON = {
   'type': 'FeatureCollection',
   'features': [
-    {
-      'type': 'Feature',
-      'properties': {},
-      'id': 13,
-      'geometry': {
-        'type': 'LineString',
-        'coordinates': [
-          [
-            13.389807343482971,
-            52.51038691206013
-          ],
-          [
-            13.387414813041685,
-            52.510253051808995
-          ],
-          [
-            13.386899828910828,
-            52.51079502006544
-          ],
-          [
-            13.38684618473053,
-            52.51092561382671
-          ],
-          [
-            13.38683009147644,
-            52.51099091056185
-          ]
-        ]
-      }
-    },
+    // {
+    //   'type': 'Feature',
+    //   'properties': {},
+    //   'id': 13,
+    //   'geometry': {
+    //     'type': 'LineString',
+    //     'coordinates': [
+    //       [
+    //         13.389807343482971,
+    //         52.51038691206013
+    //       ],
+    //       [
+    //         13.387414813041685,
+    //         52.510253051808995
+    //       ],
+    //       [
+    //         13.386899828910828,
+    //         52.51079502006544
+    //       ],
+    //       [
+    //         13.38684618473053,
+    //         52.51092561382671
+    //       ],
+    //       [
+    //         13.38683009147644,
+    //         52.51099091056185
+    //       ]
+    //     ]
+    //   }
+    // },
     // {
     //   'type': 'Feature',
     //   'properties': {},
@@ -290,12 +290,15 @@ const useStyles = makeStyles({
 function Recording () {
   const classes = useStyles()
 
-  const [geoJson, setGeoJson] = useState(EXAMPLE_GEOJSON)
+  const [geoJson, _setGeoJson] = useState(EMPTY_GEOJSON)
+  const geoJsonRef = useRef(EMPTY_GEOJSON)
   const [currentSubsegments, setCurrentSubsegments] = useState(emptySegments())
   const [subsegmentIndexInEditMode, setSubsegmentIndexInEditMode] = useState(-1)
   const [selectedSegmentId, setSelectedSegmentId] = useState(null)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
+
+  const loadedBoundingBoxesRef = useRef(emptyBoundsArray())
 
   function updateSubsegment (index, segment) {
     setCurrentSubsegments([segment])
@@ -316,26 +319,81 @@ function Recording () {
   }
 
   async function onFeatureCreated (feature) {
-    const createdFeature = await postSegment({ ...feature, properties: { subsegments: [] } })
+    const createdFeature = await postSegment({...feature, properties: {subsegments: []}})
     const newGeoJson = Object.assign({}, geoJson)
     newGeoJson.features.push(createdFeature)
     setGeoJson(newGeoJson)
     setSelectedSegmentId(createdFeature.id)
   }
 
-  async function onBoundsChange(bounds) {
-    const topRight = `${bounds._northEast.lng},${bounds._northEast.lat}`
-    const bottomRight = `${bounds._southWest.lng},${bounds._northEast.lat}`
-    const bottomLeft = `${bounds._southWest.lng},${bounds._southWest.lat}`
-    const topLeft = `${bounds._northEast.lng},${bounds._southWest.lat}`
-    const boundingBox = `${topRight},${bottomRight},${bottomLeft},${topLeft},${topRight}`
-    const geojson = await getSegments(boundingBox)
-    setGeoJson(geojson)
+  async function onBoundsChange (bounds) {
+    const boundingBox = {
+      swLng: bounds._southWest.lng,
+      swLat: bounds._southWest.lat,
+      neLng: bounds._northEast.lng,
+      neLat: bounds._northEast.lat,
+    }
+
+    if (checkIfBoundingBoxWasRequestedBefore(boundingBox)) {
+      console.log('was requested before')
+      return
+    }
+
+    const topRight = `${boundingBox.neLng},${boundingBox.neLat}`
+    const bottomRight = `${boundingBox.swLng},${boundingBox.neLat}`
+    const bottomLeft = `${boundingBox.swLng},${boundingBox.swLat}`
+    const topLeft = `${boundingBox.neLng},${boundingBox.swLat}`
+
+    const knownSegmentIdsInBounds = getLoadedSegmentIdsInBounds(boundingBox)
+    const boundingBoxString = `${topRight},${bottomRight},${bottomLeft},${topLeft},${topRight}`
+    loadedBoundingBoxesRef.current.push(boundingBox)
+    try {
+      const geoJson = await getSegments(boundingBoxString, knownSegmentIdsInBounds)
+      addFeatures(geoJson.features)
+    }
+    catch (e) {
+      loadedBoundingBoxesRef.current = loadedBoundingBoxesRef.current.filter(bbox => bbox !== boundingBox)
+    }
   }
 
-  function onFeaturesEdited(changedGeojson) {
+  function onFeaturesEdited (changedGeojson) {
     // TODO: merge existing geoJson with new geoJson
     setSelectedSegmentId(null)
+  }
+
+  function checkIfBoundingBoxWasRequestedBefore (boundingBox) {
+    return loadedBoundingBoxesRef.current.some(bbox => bboxContainsBBox(bbox, boundingBox))
+  }
+
+  function getLoadedSegmentIdsInBounds (boundingBox) {
+    return geoJsonRef.current.features.filter(feature => {
+      if (feature.bbox) {
+        const swLng = feature.bbox[0]
+        const swLat = feature.bbox[1]
+        const neLng = feature.bbox[2]
+        const neLat = feature.bbox[3]
+
+        return bboxIntersectsBBox(boundingBox, {swLng, swLat, neLng, neLat})
+
+      }
+
+      return false
+    }).map(feature => feature.id)
+  }
+
+  function addFeatures (newFeatures) {
+    const loadedFeatureIds = geoJsonRef.current.features.map(feature => feature.id)
+    const featuresToMerge = newFeatures.filter(feature => !loadedFeatureIds.includes(feature.id))
+    const updatedGeoJson = Object.assign({}, geoJsonRef.current)
+    updatedGeoJson.features = updatedGeoJson.features.concat(featuresToMerge)
+
+    setGeoJson(updatedGeoJson)
+  }
+
+  function setGeoJson (geoJson) {
+    geoJsonRef.current = geoJson
+    _setGeoJson(geoJson)
+
   }
 
   function cancelEditing () {
@@ -363,7 +421,7 @@ function Recording () {
     if (!selectedSegmentId) {
       return (
         <div>
-          <div className={classes.verticalSpace} />
+          <div className={classes.verticalSpace}/>
           <div className={classes.header}>Willkommen bei ParkplatzTransport</div>
           <div className={classes.subheader}>Wähle einen vorhandenen Abschnitt oder erstelle einen Neuen</div>
           <div className={classes.subheader}>Zoome in die Karte um die Bearbeitungswerkzeuge zu sehen</div>
@@ -435,7 +493,8 @@ function Recording () {
       <div style={{marginTop: 20}} key={'currentSubsegments'}>
         {cards}
         <div className={classes.buttonGroup}>
-          <Button className={classes.bottomButton} key="addSegment" variant={'contained'} onClick={() => addSubsegment()}
+          <Button className={classes.bottomButton} key="addSegment" variant={'contained'}
+                  onClick={() => addSubsegment()}
                   size={'small'} color={'primary'}>
             Abschnitt hinzufügen
           </Button>

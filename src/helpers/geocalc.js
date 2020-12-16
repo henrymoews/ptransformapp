@@ -4,7 +4,7 @@
  * @param p2 [lat, lon]
  * @returns {number}
  */
-export function calcDistance(p1, p2) {
+export function calcDistance (p1, p2) {
   const lat1 = p1[0]
   const lon1 = p1[1]
   const lat2 = p2[0]
@@ -32,7 +32,21 @@ export function calcDistanceOfPolyline (points) {
 
   let length = 0
   for (let i = 0; i < points.length - 1; i++) {
-    length += calcDistance(points[i], points[i+1])
+    length += calcDistance(points[i], points[i + 1])
   }
   return length
+}
+
+export function bboxContainsBBox (outerBBox, innerBBox) {
+  return outerBBox.swLng <= innerBBox.swLng
+    && outerBBox.swLat <= innerBBox.swLat
+    && outerBBox.neLng >= innerBBox.neLng
+    && outerBBox.neLat >= innerBBox.neLat
+}
+
+export function bboxIntersectsBBox (bbox1, bbox2) {
+  return !(bbox2.swLng > bbox1.neLng
+    || bbox2.neLng < bbox1.swLng
+    || bbox2.neLat < bbox1.swLat
+    || bbox2.swLat > bbox1.neLat);
 }

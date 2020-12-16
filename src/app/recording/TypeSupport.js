@@ -11,6 +11,13 @@ export function emptySegments() {
 }
 
 /**
+ * @returns {{swLat: number, swLng: number, neLng: number, neLat: number}[]}
+ */
+export function emptyBoundsArray(){
+  return []
+}
+
+/**
  *
  * @returns {[number, number] | null}   [lat, lon]
  */

@@ -23,9 +23,17 @@ export async function postSegment(segment) {
   return await response.json()
 }
 
-export async function getSegments(boundingBox) {
-  const url = boundingBox ? `${routes.segments}?bbox=${boundingBox}` : routes.segments
-  const response = await fetch(url)
+export async function getSegments(boundingBox = null, excludedSegmentIds = []) {
+  const url = routes.segments
+  const params = {}
+  if (boundingBox) {
+    params.bbox = boundingBox
+  }
+  if (excludedSegmentIds.length > 0) {
+    params.exclude = excludedSegmentIds.join(',')
+  }
+  const searchParams = new URLSearchParams(params)
+  const response = await fetch(`${url}?${searchParams.toString()}`)
   return await response.json()
 }
 
