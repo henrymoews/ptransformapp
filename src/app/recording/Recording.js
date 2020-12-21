@@ -8,7 +8,7 @@ import { emptyBoundsArray, emptySegments } from './TypeSupport'
 import SubsegmentUI from './SubsegmentUI'
 import Subsegment, { SegmentType } from './Subsegment'
 import { makeStyles } from '@material-ui/core/styles'
-import { getSegment, getSegments, postSegment } from '../../helpers/api'
+import { getSegment, getSegments, postSegment, updateSegment } from '../../helpers/api'
 import { bboxContainsBBox, bboxIntersectsBBox } from '../../helpers/geocalc'
 import SegmentForm from '../components/SegmentForm'
 
@@ -180,6 +180,10 @@ function Recording () {
     setSelectedSegmentId(null)
   }
 
+  async function onSegmentChanged (segment) {
+    await updateSegment(segment)
+  }
+
   function renderMapView () {
     return (
       <div>
@@ -213,32 +217,7 @@ function Recording () {
 
       )
     }
-    return <SegmentForm segment={selectedSegmentId}/>
-    // return (
-    //   <div>
-    //     <div className={classes.header}>Streckenabschnitte</div>
-    //     {renderSegments()}
-    //
-    //     <div className={classes.verticalSpace}/>
-    //     <div className={classes.buttonGroup}>
-    //       <Button className={classes.bottomButton} key='cancel' variant={'text'}
-    //               color={'secondary'}
-    //               onClick={cancelEditing}
-    //       >
-    //         Abbrechen
-    //       </Button>
-    //       <Button className={classes.bottomButton} key='save' variant={'text'}
-    //               color={'primary'}
-    //               disabled={!isChanged}
-    //               onClick={() => {
-    //                 // sendToServer()
-    //               }}
-    //       >
-    //         Speichern
-    //       </Button>
-    //     </div>
-    //   </div>
-    // )
+    return <SegmentForm segment={segmentsById[selectedSegmentId]} onChanged={onSegmentChanged}/>
   }
 
   function renderSegments () {
@@ -246,15 +225,6 @@ function Recording () {
     const cards =
       currentSubsegments.map((segment, index) =>
         [
-          // <div style={{textAlign: 'center'}}>
-          //   <Tooltip title="Abschnitt einfügen">
-          //     <IconButton key={`segment_${index}_add`} component="span"
-          //
-          //                 onClick={() => addSubsegment(index)}>
-          //       <AddCircleIcon/>
-          //     </IconButton>
-          //   </Tooltip>
-          // </div>,
           <SubsegmentUI
             key={`segment_${index}${subsegmentIndexInEditMode === index ? '_edit' : ''}`}
             outerSegment={segment}

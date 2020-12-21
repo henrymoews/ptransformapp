@@ -52,8 +52,8 @@ export async function deleteSegments(segmentId) {
   return await response.json()
 }
 
-export async function updateSegments(segmentId, segment) {
-  const response = await fetch(`routes.segments${segmentId}`, { 
+export async function updateSegment(segment) {
+  const response = await fetch(`${routes.segments}${segment.id}`, {
     method: 'PUT',
     headers: headers(),
     body: JSON.stringify(segment)

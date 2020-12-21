@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react'
+import React, { useEffect, useReducer, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { List, ListItem, ListItemSecondaryAction, ListItemText } from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton'
@@ -26,6 +26,12 @@ const useStyles = makeStyles((theme) => ({
     textAlign: 'center',
     fontEeight: 'bold',
     fontSize: 20
+  },
+  subheader: {
+    margin: '20px auto',
+    textAlign: 'center',
+    fontEeight: 'bold',
+    fontSize: 16
   },
 }))
 
@@ -69,7 +75,7 @@ const NO_PARKING_REASON = {
   LANE: 'lane'
 }
 
-function createDefaultSubsegment (orderNumber) {
+function createDefaultParkingSubsegment (orderNumber) {
   return {
     parking_allowed: true,
     order_number: orderNumber,
@@ -88,35 +94,60 @@ function createDefaultSubsegment (orderNumber) {
   }
 }
 
-export default function SegmentForm ({segment, onSave}) {
-  const classes = useStyles()
-  const [selectedSubsegment, setSelectedSubsegment] = React.useState(0)
-  const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
+function createDefaultNonParkingSegment (orderNumber) {
+  return {
+    parking_allowed: false,
+    order_number: orderNumber,
+    length_in_meters: null,   // will be set on save
+    car_count: 0,
+    quality: 1,
+    no_parking_reason: null,
+  }
+}
 
-  function addSubsegment () {
+export default function SegmentForm ({segment, onChanged}) {
+  const classes = useStyles()
+  const [selectedSubsegment, setSelectedSubsegment] = React.useState(null)
+  const [isChanged, setChanged] = useReducer((updateValue, changed) => {
+    return changed ? updateValue + 1 : 0
+  }, () => 0)
+
+  const prevSegmentRef = useRef(segment)
+
+  useEffect(() => {
+    if (isChanged && prevSegmentRef.current?.id && segment?.id !== prevSegmentRef.current?.id) {
+      onChanged(prevSegmentRef.current)
+      prevSegmentRef.current = segment
+      setChanged(false)
+    }
+  }, [segment])
+
+  function addSubsegment (segmentCreationFunction) {
     if (!segment.properties) {
       segment.properties = {}
     }
     if (!segment.properties.subsegments) {
       segment.properties.subsegments = []
     }
-    segment.properties.subsegments.push(createDefaultSubsegment(segment.properties.subsegments.length))
-
-    forceUpdate()
+    const subsegment = segmentCreationFunction(segment.properties.subsegments.length)
+    segment.properties.subsegments.push(subsegment)
+    setSelectedSubsegment(subsegment)
+    setChanged(true)
   }
 
-  function deleteSubsegment(subsegment) {
+  function deleteSubsegment (subsegment) {
     segment.properties.subsegments = segment.properties.subsegments.filter(s => s !== subsegment)
-    forceUpdate()
+    setChanged(true)
   }
 
   function renderList () {
     if (segment.properties && segment.properties.subsegments) {
       const listItems = segment.properties.subsegments.map((subsegment) => {
         return (
-          <ListItem button selected={subsegment === selectedSubsegment}>
+          <ListItem key={subsegment.order_number} button selected={subsegment === selectedSubsegment}
+                    onClick={() => setSelectedSubsegment(subsegment)}>
             <ListItemText
-              primary="Abschnitt"
+              primary={subsegment.parking_allowed ? "Parken" : "Kein Parken"}
               secondary="Detailinfo"
             />
             <ListItemSecondaryAction>
@@ -134,23 +165,47 @@ export default function SegmentForm ({segment, onSave}) {
     }
   }
 
+  function renderDetails () {
+    if (!selectedSubsegment) {
+      return (
+        <div>
+          <div className={classes.header}>Details</div>
+          <div className={classes.subheader}>Wähle oder erstelle einen Unterabschnitt</div>
+        </div>
+      )
+    }
+    return (
+      <div>
+        <div className={classes.header}>Details</div>
+        <div className={classes.subheader}>{JSON.stringify(selectedSubsegment, null, " ")}</div>
+      </div>
+    )
+  }
+
   return (
     <div>
-      <div className={classes.header}>Abschnitte</div>
+      <div className={classes.header}>Unterabschnitte</div>
       <div className={classes.list}>
         {renderList()}
       </div>
       <Button
         className={`${classes.centered} ${classes.marginTop}`}
         variant="outlined"
-        onClick={addSubsegment}
+        onClick={() => addSubsegment(createDefaultParkingSubsegment)}
       >
-        Abschnitt hinzufügen
+        Parken hinzufügen
+      </Button>
+      <Button
+        className={`${classes.centered} ${classes.marginTop}`}
+        variant="outlined"
+        onClick={() => addSubsegment(createDefaultNonParkingSegment)}
+      >
+        Parkverbot hinzufügen
       </Button>
 
-      <br />
-      <br />
-      Hier unten erscheinen dann die Details
+      <br/>
+      <br/>
+      {renderDetails()}
     </div>
   )
 }
