@@ -23,9 +23,11 @@ export async function postSegment(segment) {
   return await response.json()
 }
 
-export async function getSegments(boundingBox = null, excludedSegmentIds = []) {
+export async function getSegments(boundingBox = null, excludedSegmentIds = [], details = false) {
   const url = routes.segments
-  const params = {}
+  const params = {
+    details: details ? 1 : 0
+  }
   if (boundingBox) {
     params.bbox = boundingBox
   }
@@ -38,12 +40,12 @@ export async function getSegments(boundingBox = null, excludedSegmentIds = []) {
 }
 
 export async function getSegment(segmentId) {
-  const response = await fetch(`routes.segments${segmentId}`)
+  const response = await fetch(`${routes.segments}${segmentId}`)
   return await response.json()
 }
 
 export async function deleteSegments(segmentId) {
-  const response = await fetch(`routes.segments${segmentId}`, { 
+  const response = await fetch(`${routes.segments}${segmentId}`, {
     method: 'DELETE',
     headers: headers()
   })

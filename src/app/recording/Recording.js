@@ -8,7 +8,7 @@ import { emptyBoundsArray, emptySegments } from './TypeSupport'
 import SubsegmentUI from './SubsegmentUI'
 import Subsegment, { SegmentType } from './Subsegment'
 import { makeStyles } from '@material-ui/core/styles'
-import { getSegments, postSegment } from '../../helpers/api'
+import { getSegment, getSegments, postSegment } from '../../helpers/api'
 import { bboxContainsBBox, bboxIntersectsBBox } from '../../helpers/geocalc'
 import SegmentForm from '../components/SegmentForm'
 
@@ -299,6 +299,7 @@ function Recording () {
   const [selectedSegment, setSelectedSegment] = useState(null)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const loadedBoundingBoxesRef = useRef(emptyBoundsArray())
 
@@ -350,10 +351,11 @@ function Recording () {
     const boundingBoxString = `${topRight},${bottomRight},${bottomLeft},${topLeft},${topRight}`
     loadedBoundingBoxesRef.current.push(boundingBox)
     try {
+      setIsLoading(true)
       const geoJson = await getSegments(boundingBoxString, knownSegmentIdsInBounds)
       addFeatures(geoJson.features)
-    }
-    catch (e) {
+      setIsLoading(false)
+    } catch (e) {
       loadedBoundingBoxesRef.current = loadedBoundingBoxesRef.current.filter(bbox => bbox !== boundingBox)
     }
   }
@@ -361,6 +363,19 @@ function Recording () {
   function onFeaturesEdited (changedGeojson) {
     // TODO: merge existing geoJson with new geoJson
     setSelectedSegment(null)
+  }
+
+  async function onSelectSegment (segment) {
+    if (!segment.properties || segment.properties.length === 0) {
+      setSelectedSegment(segment)
+    }
+    else {
+      setIsLoading(true)
+      const segmentWithDetails = await getSegment(segment.id)
+
+      setSelectedSegment(segmentWithDetails)
+      setIsLoading(false)
+    }
   }
 
   function checkIfBoundingBoxWasRequestedBefore (boundingBox) {
@@ -384,10 +399,13 @@ function Recording () {
   }
 
   function addFeatures (newFeatures) {
-    const loadedFeatureIds = geoJsonRef.current.features.map(feature => feature.id)
-    const featuresToMerge = newFeatures.filter(feature => !loadedFeatureIds.includes(feature.id))
+    const newFeatureIds = newFeatures.map(feature => feature.id)
+    const featuresToKeep = geoJsonRef.current.features
+      .map(feature => feature.id)
+      .filter(feature => !newFeatureIds.includes(feature.id))
+
     const updatedGeoJson = Object.assign({}, geoJsonRef.current)
-    updatedGeoJson.features = updatedGeoJson.features.concat(featuresToMerge)
+    updatedGeoJson.features = featuresToKeep.concat(newFeatures)
 
     setGeoJson(updatedGeoJson)
   }
@@ -407,8 +425,8 @@ function Recording () {
       <div>
         <PTMap
           key='map'
-          selectedFeatureId={selectedSegment}
-          onSelectFeature={setSelectedSegment}
+          selectedFeature={selectedSegment}
+          onSelectFeature={onSelectSegment}
           onFeaturesEdited={onFeaturesEdited}
           onFeatureCreated={onFeatureCreated}
           onBoundsChanged={onBoundsChange}
@@ -419,6 +437,11 @@ function Recording () {
   }
 
   function renderFormView () {
+    if (isLoading) {
+      return (
+        <div>Loading...</div>
+      )
+    }
     if (!selectedSegment) {
       return (
         <div>

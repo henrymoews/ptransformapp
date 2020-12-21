@@ -133,6 +133,9 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
     const leafletFG = editableFGRef.current.leafletElement
     leafletFG.clearLayers()
     leafletGeojson.eachLayer(layer => {
+      if (selectedFeature) {
+        console.log('selected vs current:', selectedFeature.id, layer.feature.id)
+      }
       layer.setStyle({color: selectedFeature && selectedFeature.id === layer.feature.id ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
       const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
       // if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
