@@ -14,241 +14,7 @@ import SegmentForm from '../components/SegmentForm'
 
 const EMPTY_GEOJSON = {
   'type': 'FeatureCollection',
-  'features': [
-    // {
-    //   'type': 'Feature',
-    //   'properties': {},
-    //   'id': 13,
-    //   'geometry': {
-    //     'type': 'LineString',
-    //     'coordinates': [
-    //       [
-    //         13.389807343482971,
-    //         52.51038691206013
-    //       ],
-    //       [
-    //         13.387414813041685,
-    //         52.510253051808995
-    //       ],
-    //       [
-    //         13.386899828910828,
-    //         52.51079502006544
-    //       ],
-    //       [
-    //         13.38684618473053,
-    //         52.51092561382671
-    //       ],
-    //       [
-    //         13.38683009147644,
-    //         52.51099091056185
-    //       ]
-    //     ]
-    //   }
-    // },
-    // {
-    //   'type': 'Feature',
-    //   'properties': {},
-    //   'geometry': {
-    //     'type': 'LineString',
-    //     'coordinates': [
-    //       [
-    //         13.386835455894468,
-    //         52.51107253134428
-    //       ],
-    //       [
-    //         13.389705419540405,
-    //         52.51126515578991
-    //       ]
-    //     ]
-    //   }
-    // },
-    // {
-    //   'type': 'Feature',
-    //   'properties': {},
-    //   'geometry': {
-    //     'type': 'LineString',
-    //     'coordinates': [
-    //       [
-    //         13.391532003879547,
-    //         52.50956415480001
-    //       ],
-    //       [
-    //         13.3914515376091,
-    //         52.51002287652146
-    //       ],
-    //       [
-    //         13.391411304473877,
-    //         52.51008001234361
-    //       ],
-    //       [
-    //         13.391333520412445,
-    //         52.510125720947855
-    //       ],
-    //       [
-    //         13.391212821006775,
-    //         52.51014041298913
-    //       ],
-    //       [
-    //         13.391108214855194,
-    //         52.51012735339714
-    //       ],
-    //       [
-    //         13.391059935092926,
-    //         52.510088174597854
-    //       ],
-    //       [
-    //         13.391035795211792,
-    //         52.5100261414276
-    //       ],
-    //       [
-    //         13.39110016822815,
-    //         52.509933091507996
-    //       ],
-    //       [
-    //         13.391287922859192,
-    //         52.50984167385129
-    //       ],
-    //       [
-    //         13.391389846801758,
-    //         52.509773110483955
-    //       ],
-    //       [
-    //         13.39144617319107,
-    //         52.50975352093079
-    //       ],
-    //       [
-    //         13.391483724117277,
-    //         52.509560889859564
-    //       ]
-    //     ]
-    //   }
-    // },
-    // {
-    //   'type': 'Feature',
-    //   'properties': {},
-    //   'geometry': {
-    //     'type': 'Polygon',
-    //     'coordinates': [
-    //       [
-    //         [
-    //           13.388257026672363,
-    //           52.50934540325395
-    //         ],
-    //         [
-    //           13.38933527469635,
-    //           52.509427027092514
-    //         ],
-    //         [
-    //           13.389313817024231,
-    //           52.50976005078283
-    //         ],
-    //         [
-    //           13.389217257499695,
-    //           52.5098351440114
-    //         ],
-    //         [
-    //           13.389142155647276,
-    //           52.50984167385129
-    //         ],
-    //         [
-    //           13.389147520065308,
-    //           52.509949416069546
-    //         ],
-    //         [
-    //           13.389195799827576,
-    //           52.50995268098114
-    //         ],
-    //         [
-    //           13.389254808425903,
-    //           52.50988085287029
-    //         ],
-    //         [
-    //           13.389383554458616,
-    //           52.509756785856936
-    //         ],
-    //         [
-    //           13.389405012130737,
-    //           52.509427027092514
-    //         ],
-    //         [
-    //           13.390000462532042,
-    //           52.50945967658549
-    //         ],
-    //         [
-    //           13.389989733695984,
-    //           52.50956415480001
-    //         ],
-    //         [
-    //           13.389882445335386,
-    //           52.50966210290056
-    //         ],
-    //         [
-    //           13.38984489440918,
-    //           52.510057158023685
-    //         ],
-    //         [
-    //           13.389887809753418,
-    //           52.5101093964518
-    //         ],
-    //         [
-    //           13.38985025882721,
-    //           52.51030202511892
-    //         ],
-    //         [
-    //           13.387457728385924,
-    //           52.51016816460925
-    //         ],
-    //         [
-    //           13.388257026672363,
-    //           52.50934540325395
-    //         ]
-    //       ]
-    //     ]
-    //   }
-    // },
-    // {
-    //   'type': 'Feature',
-    //   'properties': {},
-    //   'geometry': {
-    //     'type': 'Polygon',
-    //     'coordinates': [
-    //       [
-    //         [
-    //           13.389984369277954,
-    //           52.510488123198826
-    //         ],
-    //         [
-    //           13.391615152359009,
-    //           52.510488123198826
-    //         ],
-    //         [
-    //           13.391615152359009,
-    //           52.511225978004965
-    //         ],
-    //         [
-    //           13.389984369277954,
-    //           52.511225978004965
-    //         ],
-    //         [
-    //           13.389984369277954,
-    //           52.510488123198826
-    //         ]
-    //       ]
-    //     ]
-    //   }
-    // },
-    // {
-    //   "type": "Feature",
-    //   "properties": {},
-    //   "geometry": {
-    //     "type": "Point",
-    //     "coordinates": [
-    //       13.390557020902632,
-    //       52.50986983377473
-    //     ]
-    //   }
-    // }
-  ]
+  'features': []
 }
 
 const useStyles = makeStyles({
@@ -292,11 +58,11 @@ const useStyles = makeStyles({
 function Recording () {
   const classes = useStyles()
 
-  const [geoJson, _setGeoJson] = useState(EMPTY_GEOJSON)
-  const geoJsonRef = useRef(EMPTY_GEOJSON)
+  const [segmentsById, setSegmentsById] = useState({})
+
   const [currentSubsegments, setCurrentSubsegments] = useState(emptySegments())
   const [subsegmentIndexInEditMode, setSubsegmentIndexInEditMode] = useState(-1)
-  const [selectedSegment, setSelectedSegment] = useState(null)
+  const [selectedSegmentId, setSelectedSegmentId] = useState(null)
   const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
   const [isChanged, setIsChanged] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -321,12 +87,10 @@ function Recording () {
     forceUpdate()
   }
 
-  async function onFeatureCreated (feature) {
-    const createdFeature = await postSegment({...feature, properties: {subsegments: []}})
-    const newGeoJson = Object.assign({}, geoJson)
-    newGeoJson.features.push(createdFeature)
-    setGeoJson(newGeoJson)
-    setSelectedSegment(createdFeature)
+  async function onSegmentCreated (segment) {
+    const createdSegment = await postSegment({...segment, properties: {subsegments: []}})
+    addSegment(createdSegment)
+    setSelectedSegmentId(createdSegment.id)
   }
 
   async function onBoundsChange (bounds) {
@@ -353,27 +117,29 @@ function Recording () {
     try {
       setIsLoading(true)
       const geoJson = await getSegments(boundingBoxString, knownSegmentIdsInBounds)
-      addFeatures(geoJson.features)
+      addSegments(geoJson.features)
       setIsLoading(false)
     } catch (e) {
       loadedBoundingBoxesRef.current = loadedBoundingBoxesRef.current.filter(bbox => bbox !== boundingBox)
     }
   }
 
-  function onFeaturesEdited (changedGeojson) {
+  function onSegmentEdited (changedGeojson) {
     // TODO: merge existing geoJson with new geoJson
-    setSelectedSegment(null)
+    setSelectedSegmentId(null)
   }
 
-  async function onSelectSegment (segment) {
-    if (!segment.properties || segment.properties.length === 0) {
-      setSelectedSegment(segment)
-    }
-    else {
-      setIsLoading(true)
-      const segmentWithDetails = await getSegment(segment.id)
+  async function onSegmentSelect (id) {
+    console.log('selected segment id', id)
 
-      setSelectedSegment(segmentWithDetails)
+    setSelectedSegmentId(id)
+
+    const segment = segmentsById[id]
+    if (segment && (!segment.properties || segment.properties.length === 0)) {
+      setIsLoading(true)
+      const segmentWithDetails = await getSegment(id)
+      addSegment(segmentWithDetails)
+      setSelectedSegmentId(segmentWithDetails.id)
       setIsLoading(false)
     }
   }
@@ -383,41 +149,35 @@ function Recording () {
   }
 
   function getLoadedSegmentIdsInBounds (boundingBox) {
-    return geoJsonRef.current.features.filter(feature => {
-      if (feature.bbox) {
-        const swLng = feature.bbox[0]
-        const swLat = feature.bbox[1]
-        const neLng = feature.bbox[2]
-        const neLat = feature.bbox[3]
-
+    return Object.values(segmentsById).filter(segment => {
+      if (segment.bbox) {
+        const swLng = segment.bbox[0]
+        const swLat = segment.bbox[1]
+        const neLng = segment.bbox[2]
+        const neLat = segment.bbox[3]
         return bboxIntersectsBBox(boundingBox, {swLng, swLat, neLng, neLat})
-
       }
-
       return false
-    }).map(feature => feature.id)
+    }).map(segment => segment.id)
   }
 
-  function addFeatures (newFeatures) {
-    const newFeatureIds = newFeatures.map(feature => feature.id)
-    const featuresToKeep = geoJsonRef.current.features
-      .map(feature => feature.id)
-      .filter(feature => !newFeatureIds.includes(feature.id))
-
-    const updatedGeoJson = Object.assign({}, geoJsonRef.current)
-    updatedGeoJson.features = featuresToKeep.concat(newFeatures)
-
-    setGeoJson(updatedGeoJson)
+  function addSegment (newOrUpdatedSegment) {
+    addSegments([newOrUpdatedSegment])
   }
 
-  function setGeoJson (geoJson) {
-    geoJsonRef.current = geoJson
-    _setGeoJson(geoJson)
+  function addSegments (newOrUpdatedSegments) {
+    const newSegmentsById = Object.assign({}, segmentsById)
+    for (const segment of newOrUpdatedSegments) {
+      newSegmentsById[segment.id] = segment
+    }
 
+    console.log('from', newOrUpdatedSegments, 'to', newSegmentsById)
+
+    setSegmentsById(newSegmentsById)
   }
 
   function cancelEditing () {
-    setSelectedSegment(null)
+    setSelectedSegmentId(null)
   }
 
   function renderMapView () {
@@ -425,12 +185,12 @@ function Recording () {
       <div>
         <PTMap
           key='map'
-          selectedFeature={selectedSegment}
-          onSelectFeature={onSelectSegment}
-          onFeaturesEdited={onFeaturesEdited}
-          onFeatureCreated={onFeatureCreated}
+          selectedSegmentId={selectedSegmentId}
+          onSegmentSelect={onSegmentSelect}
+          onSegmentEdited={onSegmentEdited}
+          onSegmentCreated={onSegmentCreated}
           onBoundsChanged={onBoundsChange}
-          geoJson={geoJson}
+          segments={Object.values(segmentsById)}
         />
       </div>
     )
@@ -442,7 +202,7 @@ function Recording () {
         <div>Loading...</div>
       )
     }
-    if (!selectedSegment) {
+    if (!selectedSegmentId) {
       return (
         <div>
           <div className={classes.verticalSpace}/>
@@ -453,7 +213,7 @@ function Recording () {
 
       )
     }
-    return <SegmentForm segment={selectedSegment}/>
+    return <SegmentForm segment={selectedSegmentId}/>
     // return (
     //   <div>
     //     <div className={classes.header}>Streckenabschnitte</div>

@@ -9,6 +9,7 @@ import { FeatureGroup, Map, Marker, Polyline, Polygon, TileLayer } from 'react-l
 import L from 'leaflet'
 import { EditControl } from 'react-leaflet-draw'
 import { makeStyles } from '@material-ui/core/styles'
+import { geoJsonFromSegments } from '../../helpers/geojson'
 
 // work around broken icons when using webpack, see https://github.com/PaulLeCam/react-leaflet/issues/255
 
@@ -31,14 +32,14 @@ const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
   'features': []
 }
 
-export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFeaturesEdited, onFeatureCreated, onBoundsChanged}) {
+export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, onSegmentEdited, onSegmentCreated, onBoundsChanged}) {
 
   const [showEditControl, setShowEditControl] = useState(false)
   const editableFGRef = useRef(null)
 
   useEffect(() => {
-    setFeaturesFromGeojson()
-  }, [geoJson])
+    setFeaturesFromSegments()
+  }, [segments])
 
 
   // see http://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event for leaflet-draw events doc
@@ -61,7 +62,7 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
 
   function _onMoveEnd (e) {
     setShowEditControl(e.sourceTarget._zoom >= MIN_ZOOM_FOR_EDITING)
-    setFeaturesFromGeojson()
+    setFeaturesFromSegments()
     onBoundsChanged(e.sourceTarget.getBounds())
   }
 
@@ -78,7 +79,7 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
     const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
     const newFeature = geojsonData.features[geojsonData.features.length -1]
     console.log('newFeature', newFeature)
-    onFeatureCreated(newFeature)
+    onSegmentCreated(newFeature)
 
   }
 
@@ -97,7 +98,7 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
     // store the ref for future access to content
     editableFGRef.current = reactFGref
 
-    setFeaturesFromGeojson()
+    setFeaturesFromSegments()
   }
 
   function _onChange (notify = false) {
@@ -109,7 +110,7 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
     if (notify) {
       const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
       console.log('geojson', geojsonData)
-      onFeaturesEdited(geojsonData)
+      onSegmentEdited(geojsonData)
     }
   }
 
@@ -119,24 +120,19 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
    *       Also, getDrawOptions and getEditOptions must be stable during editing / drawing for not losing the tools
    *       on zoom change.
    */
-  function setFeaturesFromGeojson () {
+  function setFeaturesFromSegments () {
     if  (editableFGRef.current == null) {
       // not yet ready
       return
     }
 
-    console.log('setting features from geojson', geoJson)
-    const leafletGeojson = new L.GeoJSON(geoJson)
-
+    const leafletGeojson = new L.GeoJSON(geoJsonFromSegments(segments))
 
     // populate the leaflet FeatureGroup with the initialGeoJson layers
     const leafletFG = editableFGRef.current.leafletElement
     leafletFG.clearLayers()
     leafletGeojson.eachLayer(layer => {
-      if (selectedFeature) {
-        console.log('selected vs current:', selectedFeature.id, layer.feature.id)
-      }
-      layer.setStyle({color: selectedFeature && selectedFeature.id === layer.feature.id ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
+      layer.setStyle({color: selectedSegmentId === layer.feature.id ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
       const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
       // if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
       //   layer.off("click")
@@ -148,7 +144,7 @@ export default function PTMap ({geoJson, onSelectFeature, selectedFeature, onFea
         leafletFG.addLayer(layer)
         layer.off("click")
         layer.on("click", function (event) {
-          onSelectFeature(layer.feature)
+          onSegmentSelect(layer.feature.id)
         });
         // console.log('adding layer', layer)
       }
