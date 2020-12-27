@@ -4,6 +4,7 @@ import { List, ListItem, ListItemSecondaryAction, ListItemText } from '@material
 import IconButton from '@material-ui/core/IconButton'
 import DeleteIcon from '@material-ui/icons/Delete'
 import Button from '@material-ui/core/Button'
+import SplitButton from './SplitButton'
 
 const useStyles = makeStyles((theme) => ({
   list: {
@@ -79,7 +80,7 @@ function createDefaultParkingSubsegment (orderNumber) {
   return {
     parking_allowed: true,
     order_number: orderNumber,
-    length_in_meters: null,   // will be set on save
+    length_in_meters: 0,
     car_count: 0,
     quality: 1,
     fee: false,
@@ -188,21 +189,13 @@ export default function SegmentForm ({segment, onChanged}) {
       <div className={classes.list}>
         {renderList()}
       </div>
-      <Button
-        className={`${classes.centered} ${classes.marginTop}`}
-        variant="outlined"
-        onClick={() => addSubsegment(createDefaultParkingSubsegment)}
-      >
-        Parken hinzufügen
-      </Button>
-      <Button
-        className={`${classes.centered} ${classes.marginTop}`}
-        variant="outlined"
-        onClick={() => addSubsegment(createDefaultNonParkingSegment)}
-      >
-        Parkverbot hinzufügen
-      </Button>
-
+      <SplitButton caption={"Abschnitt hinzufügen"} optionsAndCallbacks={[
+        {label: "Parken", callback: () => addSubsegment(createDefaultParkingSubsegment)},
+        {label: "Kein Parken", callback: () => addSubsegment(createDefaultNonParkingSegment)},
+        {label: "Haltestelle", disabled: true},
+        {label: "Busspur", disabled: true},
+        {label: "Einfahrt", disabled: true}
+      ]}/>
       <br/>
       <br/>
       {renderDetails()}
