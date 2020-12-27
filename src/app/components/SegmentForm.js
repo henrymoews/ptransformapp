@@ -1,6 +1,14 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { List, ListItem, ListItemSecondaryAction, ListItemText } from '@material-ui/core'
+import {
+  FormControl, FormControlLabel,
+  FormLabel,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText, Radio,
+  RadioGroup
+} from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton'
 import DeleteIcon from '@material-ui/icons/Delete'
 import Button from '@material-ui/core/Button'
@@ -15,6 +23,15 @@ const useStyles = makeStyles((theme) => ({
 
   marginTop: {
     marginTop: 10
+  },
+
+  marginLeft: {
+    marginLeft: 15
+  },
+
+  marginLeftRight: {
+    marginLeft: 10,
+    marginRight: 10
   },
 
   centered: {
@@ -109,7 +126,7 @@ function createDefaultNonParkingSegment (orderNumber) {
 export default function SegmentForm ({segment, onChanged}) {
   const classes = useStyles()
   const [selectedSubsegment, setSelectedSubsegment] = React.useState(null)
-  const [isChanged, setChanged] = useReducer((updateValue, changed) => {
+  const [isChanged, setChanged] = useReducer((updateValue, changed = true) => {
     return changed ? updateValue + 1 : 0
   }, () => 0)
 
@@ -133,12 +150,12 @@ export default function SegmentForm ({segment, onChanged}) {
     const subsegment = segmentCreationFunction(segment.properties.subsegments.length)
     segment.properties.subsegments.push(subsegment)
     setSelectedSubsegment(subsegment)
-    setChanged(true)
+    setChanged()
   }
 
   function deleteSubsegment (subsegment) {
     segment.properties.subsegments = segment.properties.subsegments.filter(s => s !== subsegment)
-    setChanged(true)
+    setChanged()
   }
 
   function renderList () {
@@ -148,7 +165,7 @@ export default function SegmentForm ({segment, onChanged}) {
           <ListItem key={subsegment.order_number} button selected={subsegment === selectedSubsegment}
                     onClick={() => setSelectedSubsegment(subsegment)}>
             <ListItemText
-              primary={subsegment.parking_allowed ? "Parken" : "Kein Parken"}
+              primary={subsegment.parking_allowed ? 'Parken' : 'Kein Parken'}
               secondary="Detailinfo"
             />
             <ListItemSecondaryAction>
@@ -178,7 +195,27 @@ export default function SegmentForm ({segment, onChanged}) {
     return (
       <div>
         <div className={classes.header}>Details</div>
-        <div className={classes.subheader}>{JSON.stringify(selectedSubsegment, null, " ")}</div>
+        <div className={classes.marginLeftRight}>
+        <FormControl component="fieldset">
+          <FormLabel component="legend">Parken ist</FormLabel>
+          <RadioGroup aria-label="parking_allowed"
+                      name="parking_allowed"
+                      value={selectedSubsegment.parking_allowed}
+                      className={classes.marginLeft}
+                      onChange={() => {
+                        selectedSubsegment.parking_allowed = !selectedSubsegment.parking_allowed
+                        console.log('selectedSubsegment.parking_allowed', selectedSubsegment.parking_allowed)
+                        setChanged()
+                      }}
+          >
+            <FormControlLabel value={true} control={<Radio/>} label="(manchmal) erlaubt"/>
+            <FormControlLabel value={false} control={<Radio/>} label="nie erlaubt"/>
+          </RadioGroup>
+        </FormControl>
+
+        </div>
+
+        <div className={classes.subheader}>{JSON.stringify(selectedSubsegment, null, ' ')}</div>
       </div>
     )
   }
@@ -189,15 +226,13 @@ export default function SegmentForm ({segment, onChanged}) {
       <div className={classes.list}>
         {renderList()}
       </div>
-      <SplitButton caption={"Abschnitt hinzufügen"} optionsAndCallbacks={[
-        {label: "Parken", callback: () => addSubsegment(createDefaultParkingSubsegment)},
-        {label: "Kein Parken", callback: () => addSubsegment(createDefaultNonParkingSegment)},
-        {label: "Haltestelle", disabled: true},
-        {label: "Busspur", disabled: true},
-        {label: "Einfahrt", disabled: true}
+      <SplitButton caption={'Abschnitt hinzufügen'} optionsAndCallbacks={[
+        {label: 'Parken', callback: () => addSubsegment(createDefaultParkingSubsegment)},
+        {label: 'Kein Parken', callback: () => addSubsegment(createDefaultNonParkingSegment)},
+        {label: 'Haltestelle', disabled: true},
+        {label: 'Busspur', disabled: true},
+        {label: 'Einfahrt', disabled: true}
       ]}/>
-      <br/>
-      <br/>
       {renderDetails()}
     </div>
   )

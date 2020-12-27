@@ -18,6 +18,11 @@ export default function SplitButton({caption, optionsAndCallbacks}) {
     setOpen((prevOpen) => !prevOpen);
   };
 
+  const handleClick = (callback) => {
+    setOpen(false)
+    callback()
+  }
+
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
@@ -42,7 +47,7 @@ export default function SplitButton({caption, optionsAndCallbacks}) {
             <ArrowDropDownIcon />
           </Button>
         </ButtonGroup>
-        <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
+        <Popper style={{zIndex: 100}} open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
           {({ TransitionProps, placement }) => (
             <Grow
               {...TransitionProps}
@@ -56,7 +61,7 @@ export default function SplitButton({caption, optionsAndCallbacks}) {
                     {optionsAndCallbacks.map((option, index) => (
                       <MenuItem
                         key={`option_${index}_${option.label}`}
-                        onClick={option.callback}
+                        onClick={() => handleClick(option.callback)}
                         disabled={option.disabled}
                       >
                         {option.label}
