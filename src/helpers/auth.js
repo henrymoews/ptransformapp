@@ -29,5 +29,5 @@ export function getUserDataFromCookie() {
 
 export function setAuthCookie(token) {
   const expires = getAuthTokenExpiration(token)
-  document.cookie = `access_token=${token};expires=${expires};secure;path=/`
+  document.cookie = `access_token=${token};expires=${expires};path=/`
 }
