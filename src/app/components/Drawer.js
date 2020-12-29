@@ -11,9 +11,6 @@ import ListItemText from '@material-ui/core/ListItemText'
 import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 
-import LoginForm from './LoginForm'
-import { getUserDataFromCookie } from '../../helpers/auth'
-
 const useStyles = makeStyles({
   list: {
     width: 250,
