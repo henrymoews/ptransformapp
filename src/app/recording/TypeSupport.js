@@ -4,10 +4,10 @@
 
 /**
  *
- * @returns {Subsegment[]}
+ * @returns {Subsegment||null}
  */
-export function emptySegments() {
-  return []
+export function nullSubsegment() {
+  return null
 }
 
 /**
@@ -15,12 +15,4 @@ export function emptySegments() {
  */
 export function emptyBoundsArray(){
   return []
-}
-
-/**
- *
- * @returns {[number, number] | null}   [lat, lon]
- */
-export function nullPosition() {
-  return null
 }
