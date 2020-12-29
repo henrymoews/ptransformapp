@@ -27,11 +27,6 @@ const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berl
 const SELECTED_FEATURE_COLOR = "red"
 const UNSELECTED_FEATURE_COLOR = "#3388ff"  // default blue
 
-const DEFAULT_GEOJSON_FOR_NEW_SHAPES = {
-  'type': 'FeatureCollection',
-  'features': []
-}
-
 export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, onSegmentEdited, onSegmentCreated, onBoundsChanged}) {
 
   const [showEditControl, setShowEditControl] = useState(false)
