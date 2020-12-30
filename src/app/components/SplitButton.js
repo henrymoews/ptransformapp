@@ -10,7 +10,7 @@ import Popper from '@material-ui/core/Popper';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 
-export default function SplitButton({caption, optionsAndCallbacks}) {
+export default function SplitButton({optionsAndCallbacks}) {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef(null);
 
@@ -34,7 +34,7 @@ export default function SplitButton({caption, optionsAndCallbacks}) {
     <Grid container direction="column" alignItems="center">
       <Grid item xs={12}>
         <ButtonGroup variant="contained" color="primary" ref={anchorRef} aria-label="split button">
-          <Button onClick={handleToggle}>{caption}</Button>
+          <Button onClick={() => handleClick(optionsAndCallbacks[0].callback)}>{optionsAndCallbacks[0].label}</Button>
           <Button
             color="primary"
             size="small"
@@ -58,7 +58,7 @@ export default function SplitButton({caption, optionsAndCallbacks}) {
               <Paper>
                 <ClickAwayListener onClickAway={handleClose}>
                   <MenuList id="split-button-menu">
-                    {optionsAndCallbacks.map((option, index) => (
+                    {optionsAndCallbacks.slice(1, optionsAndCallbacks.length + 1).map((option, index) => (
                       <MenuItem
                         key={`option_${index}_${option.label}`}
                         onClick={() => handleClick(option.callback)}

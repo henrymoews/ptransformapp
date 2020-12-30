@@ -38,6 +38,22 @@ export const NO_PARKING_REASON = {
   LANE: 'lane'
 }
 
+export const NO_PARKING_REASON_LABEL = {
+  PRIVATE_PARKING: 'Privatparkplatz',
+  BUS_STOP: 'Haltestelle',
+  BUS_LANE: 'Busspur',
+  TAXI: 'Taxi',
+  TREE: 'Baum',
+  BIKE_RACKS: 'Fahrradständer',
+  PEDESTRIAN_CROSSING: 'Zebrastreifen',
+  DRIVEWAY: 'Einfahrt',
+  LOADING_ZONE: 'Ladezone',
+  STANDING_ZONE: '"Standing Zone"',
+  EMERGENCY_EXIT: 'Notausgang',
+  LOWERED_CURB_SIDE: 'Abgesenkter Bordstein',
+  LANE: 'Fahrspur'
+}
+
 export function setParkingAllowed (subsegment) {
   subsegment.parking_allowed = true
 }
@@ -54,10 +70,6 @@ export function setNotMarked (subsegment) {
   subsegment.marked = false
 }
 
-export function setLengthInMetersMandatory (subsegment, length) {
-  subsegment.length_in_meters = Number(length)
-}
-
 export function setLengthInMeters (subsegment, length) {
   subsegment.length_in_meters = length === '' ? '' : Number(length)
 }
@@ -66,9 +78,24 @@ export function setCarCount (subsegment, car_count) {
   subsegment.car_count = car_count === '' ? '' : Number(car_count)
 }
 
-export function createParkingSubsegment (orderNumber) {
+export function getToggleNoParkingReasonFn (reason) {
+  return (subsegment) => {
+    if (!subsegment.no_parking_reasons) {
+      subsegment.no_parking_reasons = [reason]
+    }
+    else if (subsegment.no_parking_reasons.includes(reason)){
+      subsegment.no_parking_reasons = subsegment.no_parking_reasons.filter(r => r !== reason)
+    }
+    else {
+      subsegment.no_parking_reasons.push(reason)
+    }
+  }
+
+}
+
+export function createEmptySubsegment (orderNumber) {
   return {
-    parking_allowed: true,
+    parking_allowed: null,
     order_number: orderNumber,
     length_in_meters: 0,
     car_count: 0,
@@ -81,17 +108,18 @@ export function createParkingSubsegment (orderNumber) {
     usage_restrictions: null,
     time_constraint: false,
     time_constraint_reason: null,
-    no_parking_reason: null,
+    no_parking_reasons: null,
   }
 }
 
+export function createParkingSubsegment (orderNumber) {
+  return Object.assign(createEmptySubsegment(orderNumber), {
+    parking_allowed: true,
+  })
+}
+
 export function createNonParkingSubsegment (orderNumber) {
-  return {
-    parking_allowed: false,
-    order_number: orderNumber,
-    length_in_meters: null,   // will be set on save
-    car_count: 0,
-    quality: 1,
-    no_parking_reason: null,
-  }
+  return Object.assign(createEmptySubsegment(orderNumber), {
+    parking_allowed: false
+  })
 }

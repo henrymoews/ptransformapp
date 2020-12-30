@@ -1,7 +1,8 @@
 import React, { useEffect, useReducer, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import {
-  FormControl, Input, InputAdornment,
+  Checkbox,
+  FormControl, FormControlLabel, FormGroup, Input, InputAdornment,
   List,
   ListItem,
   ListItemSecondaryAction,
@@ -14,8 +15,9 @@ import SplitButton from './SplitButton'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Paper from '@material-ui/core/Paper'
 import {
+  createEmptySubsegment,
   createNonParkingSubsegment,
-  createParkingSubsegment,
+  createParkingSubsegment, getToggleNoParkingReasonFn, NO_PARKING_REASON, NO_PARKING_REASON_LABEL,
   setCarCount,
   setLengthInMeters,
   setLengthInMetersMandatory,
@@ -159,7 +161,7 @@ export default function SegmentForm ({segment, onChanged}) {
       return (
         <React.Fragment>
           {/*Marking and car count*/}
-          <TableRow key={'marked'}>
+          <TableRow key={`${selectedSubsegment.id}_marked`}>
             <TableCell component="th" scope="row">
               Markierung
             </TableCell>
@@ -207,6 +209,28 @@ export default function SegmentForm ({segment, onChanged}) {
     if (!selectedSubsegment.parking_allowed) {
       return (
         <React.Fragment>
+
+          {/*No parking reason*/}
+          <TableRow key={`${selectedSubsegment.id}_noparking_reason`}>
+            <TableCell component="th" scope="row">
+              Gründe
+            </TableCell>
+            <TableCell align="left">
+              <FormGroup>
+                {Object.keys(NO_PARKING_REASON).map(key => {
+                  return (
+                    <FormControlLabel
+                      control={<Checkbox checked={selectedSubsegment.no_parking_reasons?.[NO_PARKING_REASON[key]]}
+                                         onChange={updateSubsegment(getToggleNoParkingReasonFn(NO_PARKING_REASON[key]))}
+                                         name="gilad"/>}
+                      label={NO_PARKING_REASON_LABEL[key]}
+                    />
+                  )
+                })}
+              </FormGroup>
+
+            </TableCell>
+          </TableRow>
         </React.Fragment>
       )
     }
@@ -233,17 +257,17 @@ export default function SegmentForm ({segment, onChanged}) {
               <TableBody>
 
                 {/*Parking allowed*/}
-                <TableRow key={'parking_allowed'}>
+                <TableRow key={`${selectedSubsegment.id}_parking_allowed`}>
                   <TableCell component="th" scope="row">
                     Öffentliches Parken
                   </TableCell>
                   <TableCell align="left">
                     <ButtonGroup color="primary" aria-label="outlined primary button group">
-                      <Button variant={getButtonVariant(selectedSubsegment.parking_allowed)}
+                      <Button variant={getButtonVariant(selectedSubsegment.parking_allowed === true)}
                               onClick={updateSubsegment(setParkingAllowed)}>
                         Erlaubt
                       </Button>
-                      <Button variant={getButtonVariant(!selectedSubsegment.parking_allowed)}
+                      <Button variant={getButtonVariant(selectedSubsegment.parking_allowed === false)}
                               onClick={updateSubsegment(setParkingNotAllowed)}>
                         Nie erlaubt
                       </Button>
@@ -252,7 +276,7 @@ export default function SegmentForm ({segment, onChanged}) {
                 </TableRow>
 
                 {/*Length*/}
-                <TableRow key={'parking_allowed'}>
+                <TableRow key={`${selectedSubsegment.id}_length`}>
                   <TableCell component="th" scope="row">
                     Länge
                   </TableCell>
@@ -261,7 +285,7 @@ export default function SegmentForm ({segment, onChanged}) {
                       <Input
                         id="standard-adornment-weight"
                         value={selectedSubsegment.length_in_meters}
-                        onChange={updateSubsegment(selectedSubsegment.parking_allowed ? setLengthInMetersMandatory : setLengthInMeters)}
+                        onChange={updateSubsegment(setLengthInMeters)}
                         endAdornment={<InputAdornment position="end">m</InputAdornment>}
                         aria-describedby="length in meters"
                         inputProps={{
@@ -290,9 +314,8 @@ export default function SegmentForm ({segment, onChanged}) {
       <div className={classes.list}>
         {renderList()}
       </div>
-      <SplitButton caption={'Abschnitt hinzufügen'} optionsAndCallbacks={[
-        {label: 'Parken', callback: () => addSubsegment(createParkingSubsegment)},
-        {label: 'Kein Parken', callback: () => addSubsegment(createNonParkingSubsegment)},
+      <SplitButton optionsAndCallbacks={[
+        {label: 'Abschnitt hinzufügen', callback: () => addSubsegment(createEmptySubsegment)},
         {label: 'Haltestelle', disabled: true},
         {label: 'Busspur', disabled: true},
         {label: 'Einfahrt', disabled: true}
