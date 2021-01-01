@@ -2,11 +2,11 @@ import React, { useEffect, useReducer, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import {
   Checkbox,
-  FormControl, FormControlLabel, FormGroup, Input, InputAdornment,
+  FormControl, FormControlLabel, FormGroup, FormLabel, Input, InputAdornment, InputLabel,
   List,
   ListItem,
   ListItemSecondaryAction,
-  ListItemText, Table, TableBody, TableCell, TableContainer, TableRow
+  ListItemText, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableRow, TextField
 } from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton'
 import DeleteIcon from '@material-ui/icons/Delete'
@@ -15,17 +15,32 @@ import SplitButton from './SplitButton'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Paper from '@material-ui/core/Paper'
 import {
+  ALIGNMENT,
   createEmptySubsegment,
-  createNonParkingSubsegment,
-  createParkingSubsegment, getToggleNoParkingReasonFn, NO_PARKING_REASON, NO_PARKING_REASON_LABEL,
+  getToggleNoParkingReasonFn,
+  NO_PARKING_REASONS_AND_LABEL,
+  setAlignmentDiagonal,
+  setAlignmentParallel,
+  setAlignmentPerpendicular,
   setCarCount,
+  setDurationConstraint,
+  setFee,
   setLengthInMeters,
-  setLengthInMetersMandatory,
   setMarked,
+  setNoDurationConstraint,
+  setNoTimeConstraint,
   setNotMarked,
   setParkingAllowed,
   setParkingNotAllowed,
-  toggleParkingAllowed
+  setStreetLocation,
+  setTimeConstraint,
+  setTimeConstraintReason,
+  setUsageRestriction,
+  setUsageWhenNoParking,
+  setWithoutFee,
+  STREET_LOCATION,
+  USAGE_RESTRICTIONS,
+  USAGE_WHEN_NO_PARKING,
 } from '../recording/Subsegments'
 import clsx from 'clsx'
 
@@ -72,10 +87,31 @@ const useStyles = makeStyles((theme) => ({
   withoutLabel: {
     marginTop: theme.spacing(3),
   },
+  shortTextField: {
+    width: '20ch',
+  },
   textField: {
     width: '25ch',
   },
+  wideTextField: {
+    width: '35ch',
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
 }))
+
+const ITEM_HEIGHT = 48
+const ITEM_PADDING_TOP = 8
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+}
 
 export default function SegmentForm ({segment, onChanged}) {
   const classes = useStyles()
@@ -92,6 +128,7 @@ export default function SegmentForm ({segment, onChanged}) {
       prevSegmentRef.current = segment
       setChanged(false)
     }
+    setSelectedSubsegment(null)
   }, [segment])
 
   /**
@@ -126,7 +163,7 @@ export default function SegmentForm ({segment, onChanged}) {
    */
   function updateSubsegment (subsegmentChangeFunction) {
     return (event) => {
-      subsegmentChangeFunction(selectedSubsegment, event?.target?.value)
+      subsegmentChangeFunction(selectedSubsegment, event?.target?.value || event?.target?.checked)
       setChanged()
     }
   }
@@ -173,30 +210,183 @@ export default function SegmentForm ({segment, onChanged}) {
                 </Button>
                 <Button variant={getButtonVariant(!selectedSubsegment.marked)}
                         onClick={updateSubsegment(setNotMarked)}>
-                  Ohne Markierung
+                  Unmarkiert
                 </Button>
               </ButtonGroup>
 
-              <br/>
-
               {selectedSubsegment.marked
-                ? <FormControl className={clsx(classes.margin, classes.withoutLabel, classes.textField)}>
-                  <Input
-                    id="standard-adornment-weight"
-                    value={selectedSubsegment.car_count}
-                    onChange={updateSubsegment(setCarCount)}
-                    endAdornment={<InputAdornment position="end">Stellplätze</InputAdornment>}
-                    aria-describedby="car count"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
+                ? <div>
+                  <FormControl className={clsx(classes.margin, classes.withoutLabel, classes.shortTextField)}>
+                    <Input
+                      id="standard-adornment-weight"
+                      value={selectedSubsegment.car_count}
+                      onChange={updateSubsegment(setCarCount)}
+                      endAdornment={<InputAdornment position="end">Stellplätze</InputAdornment>}
+                      aria-describedby="car count"
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                    />
+                  </FormControl>
+                </div>
+                : null
+              }
+
+            </TableCell>
+          </TableRow>
+
+          {/* Time Constraint*/}
+          <TableRow key={`${selectedSubsegment.id}_time_constraint`}>
+            <TableCell component="th" scope="row">
+              Beschränkung&nbsp;nach&nbsp;Zeit
+            </TableCell>
+            <TableCell align="left">
+              <ButtonGroup color="primary" aria-label="outlined primary button group">
+                <Button variant={getButtonVariant(selectedSubsegment.time_constraint)}
+                        onClick={updateSubsegment(setTimeConstraint)}>
+                  Ja
+                </Button>
+                <Button variant={getButtonVariant(!selectedSubsegment.time_constraint)}
+                        onClick={updateSubsegment(setNoTimeConstraint)}>
+                  Nein
+                </Button>
+              </ButtonGroup>
+
+              {selectedSubsegment.time_constraint
+                ? <FormControl className={clsx(classes.margin, classes.withoutLabel, classes.wideTextField)}>
+                  <FormLabel component="legend">Wann besteht Parkverbot?</FormLabel>
+                  <TextField id={`${selectedSubsegment.id}_time_constraint_reason`}
+                             multiline variant={'outlined'} style={{width: '100%'}}
+                             InputLabelProps={{shrink: true}}
+                             rows={3}
+                             rowsMax={5}
+                             value={selectedSubsegment.time_constraint_reason}
+                             onChange={updateSubsegment(setTimeConstraintReason)}
                   />
+                </FormControl>
+                : null
+              }
+
+              {selectedSubsegment.time_constraint
+                ? <FormControl className={classes.formControl}>
+                  <FormLabel component="legend">Nutzung bei Parkverbot</FormLabel>
+                  <Select
+                    labelId="select_usage_when_no_parking"
+                    id="select_usage_when_no_parking"
+                    value={selectedSubsegment.usage_when_no_parking}
+                    onChange={updateSubsegment(setUsageWhenNoParking)}
+                    // variant={'outlined'}
+                  >
+                    <MenuItem value={USAGE_WHEN_NO_PARKING.BUS_STOP}>Haltestelle</MenuItem>
+                    <MenuItem value={USAGE_WHEN_NO_PARKING.BUS_LANE}>Busspur</MenuItem>
+                    <MenuItem value={USAGE_WHEN_NO_PARKING.MARKET}>Markt</MenuItem>
+                    <MenuItem value={USAGE_WHEN_NO_PARKING.LANE}>Fahrspur</MenuItem>
+                    <MenuItem value={USAGE_WHEN_NO_PARKING.TAXI}>Taxi</MenuItem>
+                    <MenuItem value={USAGE_WHEN_NO_PARKING.OTHER}>Sonstiges</MenuItem>
+                  </Select>
                 </FormControl>
                 : null
               }
 
             </TableCell>
           </TableRow>
+
+          {/*Alignment*/}
+          <TableRow key={`${selectedSubsegment.id}_alignment`}>
+            <TableCell component="th" scope="row">
+              Parkwinkel
+            </TableCell>
+            <TableCell align="left">
+              <ButtonGroup color="primary" aria-label="outlined primary button group">
+                <Button variant={getButtonVariant(selectedSubsegment.alignment === ALIGNMENT.PARALLEL)}
+                        onClick={updateSubsegment(setAlignmentParallel)}>
+                  Parallel
+                </Button>
+                <Button variant={getButtonVariant(selectedSubsegment.alignment === ALIGNMENT.DIAGONAL)}
+                        onClick={updateSubsegment(setAlignmentDiagonal)}>
+                  Diagonal
+                </Button>
+                <Button variant={getButtonVariant(selectedSubsegment.alignment === ALIGNMENT.PERPENDICULAR)}
+                        onClick={updateSubsegment(setAlignmentPerpendicular)}>
+                  Quer
+                </Button>
+              </ButtonGroup>
+            </TableCell>
+          </TableRow>
+
+          {/* Other properties*/}
+          <TableRow key={`${selectedSubsegment.id}_fee`}>
+            <TableCell component="th" scope="row">
+              Weitere Eigenschaften
+            </TableCell>
+            <TableCell align="left">
+
+              {/* Fee */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedSubsegment.fee}
+                    color={'primary'}
+                    onChange={updateSubsegment(setFee)}
+                  />
+                }
+                label="Mit Gebühr"/>
+
+              {/* Duration constraint */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedSubsegment.duration_constraint}
+                    color={'primary'}
+                    onChange={updateSubsegment(setDurationConstraint)}
+                  />
+                }
+                label="Zeitlich beschränkte Parkdauer"/>
+
+              {/* Street location */}
+              <div>
+                <FormControl className={classes.formControl}>
+                  Parkposition:
+                  <Select
+                    id="select_parking_position"
+                    value={selectedSubsegment.street_location}
+                    onChange={updateSubsegment(setStreetLocation)}
+                    variant={'outlined'}
+                  >
+                    <MenuItem value={STREET_LOCATION.STREET}>Straße</MenuItem>
+                    <MenuItem value={STREET_LOCATION.CURB}>Bordstein</MenuItem>
+                    <MenuItem value={STREET_LOCATION.SIDEWALK}>Gehweg</MenuItem>
+                    <MenuItem value={STREET_LOCATION.PARKING_BAY}>Parkbucht</MenuItem>
+                    <MenuItem value={STREET_LOCATION.MIDDLE}>"Middle"</MenuItem>
+                    <MenuItem value={STREET_LOCATION.CAR_PARK}>"Car Park"</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+
+              {/* usage restriction */}
+              <div>
+                <FormControl className={classes.formControl}>
+                  Nutzergruppe:
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="select_usage_restriction"
+                    value={selectedSubsegment.usage_restrictions || USAGE_RESTRICTIONS.NO_RESTRICTION}
+                    onChange={updateSubsegment(setUsageRestriction)}
+                    variant={'outlined'}
+                  >
+                    <MenuItem value={USAGE_RESTRICTIONS.NO_RESTRICTION}>Alle Nutzer</MenuItem>
+                    <MenuItem value={USAGE_RESTRICTIONS.HANDICAP}>Behinderung</MenuItem>
+                    <MenuItem value={USAGE_RESTRICTIONS.RESIDENTS}>Anlieger</MenuItem>
+                    <MenuItem value={USAGE_RESTRICTIONS.CAR_SHARING}>Car Sharing</MenuItem>
+                    <MenuItem value={USAGE_RESTRICTIONS.GENDER}>nach Geschlecht</MenuItem>
+                    <MenuItem value={USAGE_RESTRICTIONS.ELECTRIC_CARS}>E-Autos</MenuItem>
+                    <MenuItem value={USAGE_RESTRICTIONS.OTHER}>Sonstige</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+            </TableCell>
+          </TableRow>
+
         </React.Fragment>
       )
     }
@@ -206,7 +396,7 @@ export default function SegmentForm ({segment, onChanged}) {
   }
 
   function renderDetailsForParkingNotAllowed () {
-    if (!selectedSubsegment.parking_allowed) {
+    if (selectedSubsegment.parking_allowed === false) {
       return (
         <React.Fragment>
 
@@ -217,13 +407,12 @@ export default function SegmentForm ({segment, onChanged}) {
             </TableCell>
             <TableCell align="left">
               <FormGroup>
-                {Object.keys(NO_PARKING_REASON).map(key => {
+                {Object.keys(NO_PARKING_REASONS_AND_LABEL).map(key => {
                   return (
                     <FormControlLabel
-                      control={<Checkbox checked={selectedSubsegment.no_parking_reasons?.[NO_PARKING_REASON[key]]}
-                                         onChange={updateSubsegment(getToggleNoParkingReasonFn(NO_PARKING_REASON[key]))}
-                                         name="gilad"/>}
-                      label={NO_PARKING_REASON_LABEL[key]}
+                      control={<Checkbox color={'primary'} checked={selectedSubsegment.no_parking_reasons?.[key]}
+                                         onChange={updateSubsegment(getToggleNoParkingReasonFn(key))}/>}
+                      label={NO_PARKING_REASONS_AND_LABEL[key]}
                     />
                   )
                 })}
