@@ -2,11 +2,9 @@ import React, { useEffect, useReducer, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import {
   Checkbox,
-  FormControl, FormControlLabel, FormGroup, FormLabel, Input, InputAdornment, InputLabel,
-  List,
-  ListItem,
-  ListItemSecondaryAction,
-  ListItemText, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableRow, TextField
+  FormControl, FormControlLabel, FormGroup, FormLabel, Input, InputAdornment,
+  List, ListItem, ListItemSecondaryAction,  ListItemText,
+  MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableRow, TextField
 } from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton'
 import DeleteIcon from '@material-ui/icons/Delete'
@@ -24,20 +22,16 @@ import {
   setAlignmentPerpendicular,
   setCarCount,
   setDurationConstraint,
-  setFee,
+  setHasFee,
   setLengthInMeters,
-  setMarked,
-  setNoDurationConstraint,
-  setNoTimeConstraint,
-  setNotMarked,
-  setParkingAllowed,
-  setParkingNotAllowed,
+  setIsMarked,
+  setParkingIsAllowed,
+  setParkingIsNotAllowed,
   setStreetLocation,
-  setTimeConstraint,
+  setHasTimeConstraint,
   setTimeConstraintReason,
   setUsageRestriction,
   setUsageWhenNoParking,
-  setWithoutFee,
   STREET_LOCATION,
   USAGE_RESTRICTIONS,
   USAGE_WHEN_NO_PARKING,
@@ -45,10 +39,14 @@ import {
 import clsx from 'clsx'
 
 const useStyles = makeStyles((theme) => ({
+  formView: {
+    maxHeight: 'calc(100vh - 64px)',
+    overflowY: 'scroll'
+  },
   list: {
-    height: 300,
-    'max-height': 'calc(100% - 400px)',
-    'overflow-y': 'scroll'
+    height: '25vh',
+    maxHeight: 'calc(100% - 400px)',
+    overflowY: 'scroll'
   },
 
   marginTop: {
@@ -101,17 +99,6 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 120,
   },
 }))
-
-const ITEM_HEIGHT = 48
-const ITEM_PADDING_TOP = 8
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-}
 
 export default function SegmentForm ({segment, onChanged}) {
   const classes = useStyles()
@@ -171,11 +158,21 @@ export default function SegmentForm ({segment, onChanged}) {
   function renderList () {
     if (segment.properties && segment.properties.subsegments) {
       const listItems = segment.properties.subsegments.map((subsegment) => {
+        let title
+        if (subsegment.parking_allowed === true) {
+          title = 'Parken'
+        }
+        else if (subsegment.parking_allowed === false) {
+          title = 'Kein Parken'
+        }
+        else {
+          title = 'Neuer Parkabschnitt'
+        }
         return (
           <ListItem key={subsegment.order_number} button selected={subsegment === selectedSubsegment}
                     onClick={() => setSelectedSubsegment(subsegment)}>
             <ListItemText
-              primary={subsegment.parking_allowed ? 'Parken' : 'Kein Parken'}
+              primary={title}
               secondary="Detailinfo"
             />
             <ListItemSecondaryAction>
@@ -203,16 +200,16 @@ export default function SegmentForm ({segment, onChanged}) {
               Markierung
             </TableCell>
             <TableCell align="left">
-              <ButtonGroup color="primary" aria-label="outlined primary button group">
-                <Button variant={getButtonVariant(selectedSubsegment.marked)}
-                        onClick={updateSubsegment(setMarked)}>
-                  Markiert
-                </Button>
-                <Button variant={getButtonVariant(!selectedSubsegment.marked)}
-                        onClick={updateSubsegment(setNotMarked)}>
-                  Unmarkiert
-                </Button>
-              </ButtonGroup>
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedSubsegment.marked}
+                    color={'primary'}
+                    onChange={updateSubsegment(setIsMarked)}
+                  />
+                }
+                label="Parkplätze sind markiert"/>
 
               {selectedSubsegment.marked
                 ? <div>
@@ -241,16 +238,17 @@ export default function SegmentForm ({segment, onChanged}) {
               Beschränkung&nbsp;nach&nbsp;Zeit
             </TableCell>
             <TableCell align="left">
-              <ButtonGroup color="primary" aria-label="outlined primary button group">
-                <Button variant={getButtonVariant(selectedSubsegment.time_constraint)}
-                        onClick={updateSubsegment(setTimeConstraint)}>
-                  Ja
-                </Button>
-                <Button variant={getButtonVariant(!selectedSubsegment.time_constraint)}
-                        onClick={updateSubsegment(setNoTimeConstraint)}>
-                  Nein
-                </Button>
-              </ButtonGroup>
+
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedSubsegment.time_constraint}
+                    color={'primary'}
+                    onChange={updateSubsegment(setHasTimeConstraint)}
+                  />
+                }
+                label="Mit Höchstparkdauer"/>
 
               {selectedSubsegment.time_constraint
                 ? <FormControl className={clsx(classes.margin, classes.withoutLabel, classes.wideTextField)}>
@@ -327,7 +325,7 @@ export default function SegmentForm ({segment, onChanged}) {
                   <Checkbox
                     checked={selectedSubsegment.fee}
                     color={'primary'}
-                    onChange={updateSubsegment(setFee)}
+                    onChange={updateSubsegment(setHasFee)}
                   />
                 }
                 label="Mit Gebühr"/>
@@ -453,11 +451,11 @@ export default function SegmentForm ({segment, onChanged}) {
                   <TableCell align="left">
                     <ButtonGroup color="primary" aria-label="outlined primary button group">
                       <Button variant={getButtonVariant(selectedSubsegment.parking_allowed === true)}
-                              onClick={updateSubsegment(setParkingAllowed)}>
+                              onClick={updateSubsegment(setParkingIsAllowed)}>
                         Erlaubt
                       </Button>
                       <Button variant={getButtonVariant(selectedSubsegment.parking_allowed === false)}
-                              onClick={updateSubsegment(setParkingNotAllowed)}>
+                              onClick={updateSubsegment(setParkingIsNotAllowed)}>
                         Nie erlaubt
                       </Button>
                     </ButtonGroup>
@@ -467,7 +465,7 @@ export default function SegmentForm ({segment, onChanged}) {
                 {/*Length*/}
                 <TableRow key={`${selectedSubsegment.id}_length`}>
                   <TableCell component="th" scope="row">
-                    Länge
+                    Länge (ca.)
                   </TableCell>
                   <TableCell align="left">
                     <FormControl className={clsx(classes.margin, classes.withoutLabel, classes.textField)}>
@@ -498,7 +496,7 @@ export default function SegmentForm ({segment, onChanged}) {
   }
 
   return (
-    <div>
+    <div className={classes.formView}>
       <div className={classes.header}>Unterabschnitte</div>
       <div className={classes.list}>
         {renderList()}

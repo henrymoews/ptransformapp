@@ -48,45 +48,28 @@ export const NO_PARKING_REASONS_AND_LABEL = {
   'lane': 'Fahrspur'
 }
 
-export function setParkingAllowed (subsegment) {
+export function setParkingIsAllowed (subsegment) {
   subsegment.parking_allowed = true
 }
 
-export function setParkingNotAllowed (subsegment) {
+export function setParkingIsNotAllowed (subsegment) {
   subsegment.parking_allowed = false
 }
 
-export function setMarked (subsegment) {
-  subsegment.marked = true
+export function setIsMarked (subsegment, isMarked) {
+  subsegment.marked = isMarked
 }
 
-export function setNotMarked (subsegment) {
-  subsegment.marked = false
+export function setHasTimeConstraint (subsegment, hasTimeConstraint) {
+  subsegment.time_constraint = hasTimeConstraint
 }
 
-export function setTimeConstraint (subsegment) {
-  subsegment.time_constraint = true
-}
-
-export function setNoTimeConstraint (subsegment) {
-  subsegment.time_constraint = false
-}
-
-export function setFee (subsegment, hasFee) {
-  console.log('hasFee', hasFee)
+export function setHasFee (subsegment, hasFee) {
   subsegment.fee = hasFee
-}
-
-export function setWithoutFee (subsegment) {
-  subsegment.fee = false
 }
 
 export function setDurationConstraint (subsegment, hasDurationConstraint) {
   subsegment.duration_constraint = hasDurationConstraint
-}
-
-export function setNoDurationConstraint (subsegment) {
-  subsegment.duration_constraint = false
 }
 
 export function setLengthInMeters (subsegment, length) {
