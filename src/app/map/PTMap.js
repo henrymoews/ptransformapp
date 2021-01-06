@@ -5,10 +5,9 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react'
-import { FeatureGroup, Map, Marker, Polyline, Polygon, TileLayer } from 'react-leaflet'
+import { FeatureGroup, Map, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import { EditControl } from 'react-leaflet-draw'
-import { makeStyles } from '@material-ui/core/styles'
 import { geoJsonFromSegments } from '../../helpers/geojson'
 
 // work around broken icons when using webpack, see https://github.com/PaulLeCam/react-leaflet/issues/255
@@ -24,10 +23,17 @@ const MAP_HEIGHT = 'calc(100vh - 64px)'  // fullscreen - app bar height
 const MIN_ZOOM_FOR_EDITING = 16
 const DEFAULT_MAP_CENTER = [52.501389, 13.402500] // geographical center of Berlin
 
-const SELECTED_FEATURE_COLOR = "red"
-const UNSELECTED_FEATURE_COLOR = "#3388ff"  // default blue
+const SELECTED_FEATURE_COLOR = 'red'
+const UNSELECTED_FEATURE_COLOR = '#3388ff'  // default blue
 
-export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, onSegmentEdited, onSegmentCreated, onBoundsChanged}) {
+export default function PTMap ({
+                                 segments,
+                                 onSegmentSelect,
+                                 selectedSegmentId,
+                                 onSegmentEdited,
+                                 onSegmentCreated,
+                                 onBoundsChanged
+                               }) {
 
   const [showEditControl, setShowEditControl] = useState(false)
   const editableFGRef = useRef(null)
@@ -35,7 +41,6 @@ export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, on
   useEffect(() => {
     setFeaturesFromSegments()
   }, [segments])
-
 
   // see http://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event for leaflet-draw events doc
 
@@ -72,7 +77,7 @@ export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, on
     console.log('on draw stop', e)
 
     const geojsonData = editableFGRef.current.leafletElement.toGeoJSON()
-    const newFeature = geojsonData.features[geojsonData.features.length -1]
+    const newFeature = geojsonData.features[geojsonData.features.length - 1]
     console.log('newFeature', newFeature)
     onSegmentCreated(newFeature)
 
@@ -116,7 +121,7 @@ export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, on
    *       on zoom change.
    */
   function setFeaturesFromSegments () {
-    if  (editableFGRef.current == null) {
+    if (editableFGRef.current == null) {
       // not yet ready
       return
     }
@@ -127,8 +132,13 @@ export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, on
     const leafletFG = editableFGRef.current.leafletElement
     leafletFG.clearLayers()
     leafletGeojson.eachLayer(layer => {
+      const isSelected = selectedSegmentId === layer.feature.id
+      const color = isSelected
+        ? SELECTED_FEATURE_COLOR
+        : UNSELECTED_FEATURE_COLOR
+      layer.setStyle({color: color})
       layer.setStyle({color: selectedSegmentId === layer.feature.id ? SELECTED_FEATURE_COLOR : UNSELECTED_FEATURE_COLOR})
-      const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds());
+      const isInBounds = leafletFG._map.getBounds().isValid() && leafletFG._map.getBounds().intersects(layer.getBounds())
       // if (!isInBounds && leafletFG.hasLayer(layer._leaflet_id)) {
       //   layer.off("click")
       //   leafletFG.removeLayer(layer)
@@ -136,17 +146,34 @@ export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, on
       // }
       // else if (isInBounds && !leafletFG.hasLayer(layer._leaflet_id)) {
       if (isInBounds) {
+
+        // add a marker for start and end if selected
+        if (isSelected) {
+          const latLngs = layer.getLatLngs()
+          L.marker(latLngs[0], {
+            icon: new L.DivIcon({
+              className: 'startMarker',
+              html: 'Start'
+            })
+          }).addTo(leafletFG)
+          L.marker(latLngs[latLngs.length - 1], {
+            icon: new L.DivIcon({
+              className: 'endMarker',
+              html: 'Ende'
+            })
+          }).addTo(leafletFG)
+
+        }
         leafletFG.addLayer(layer)
-        layer.off("click")
-        layer.on("click", function (event) {
+        layer.off('click')
+        layer.on('click', function (event) {
           onSegmentSelect(layer.feature.id)
-        });
-        // console.log('adding layer', layer)
+        })
       }
     })
   }
 
-  function getDrawOptions() {
+  function getDrawOptions () {
     return {
       polyline: showEditControl,
       polygon: showEditControl,
@@ -157,7 +184,7 @@ export default function PTMap ({segments, onSegmentSelect, selectedSegmentId, on
     }
   }
 
-  function getEditOptions() {
+  function getEditOptions () {
     return {
       edit: showEditControl,
       remove: false
