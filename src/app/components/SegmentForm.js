@@ -248,7 +248,7 @@ export default function SegmentForm ({segment, onChanged}) {
                     onChange={updateSubsegment(setHasTimeConstraint)}
                   />
                 }
-                label="Mit Höchstparkdauer"/>
+                label="Parkverbot zu bestimmten Zeiten"/>
 
               {selectedSubsegment.time_constraint
                 ? <FormControl className={clsx(classes.margin, classes.withoutLabel, classes.wideTextField)}>
@@ -339,7 +339,7 @@ export default function SegmentForm ({segment, onChanged}) {
                     onChange={updateSubsegment(setDurationConstraint)}
                   />
                 }
-                label="Zeitlich beschränkte Parkdauer"/>
+                label="Mit Höchstparkdauer"/>
 
               {/* Street location */}
               <div>
