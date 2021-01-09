@@ -25,14 +25,9 @@ const useStyles = makeStyles({
 
 export default function TemporaryDrawer() {
   const classes = useStyles()
-  const [state, setState] = React.useState({
-    top: false,
-    left: false,
-    bottom: false,
-    right: false,
-  })
+  const [state, setState] = React.useState(false)
 
-  const toggleDrawer = (anchor, open) => (event) => {
+  const toggleDrawer = (open) => (event) => {
     if (
       event.type === 'keydown' &&
       (event.key === 'Tab' || event.key === 'Shift')
@@ -40,17 +35,15 @@ export default function TemporaryDrawer() {
       return
     }
 
-    setState({ ...state, [anchor]: open })
+    setState(!state)
   }
 
-  const list = (anchor) => (
+  const list = () => (
     <div
-      className={clsx(classes.list, {
-        [classes.fullList]: anchor === 'top' || anchor === 'bottom',
-      })}
+      className={clsx(classes.list)}
       role='presentation'
-      onClick={toggleDrawer(anchor, false)}
-      onKeyDown={toggleDrawer(anchor, false)}
+      onClick={toggleDrawer(false)}
+      onKeyDown={toggleDrawer(false)}
     >
       <List>
         {['Home', 'Welcome', 'About'].map((text, index) => (
@@ -66,25 +59,19 @@ export default function TemporaryDrawer() {
 
   return (
     <div>
-      {['left'].map((anchor) => (
-        <React.Fragment key={anchor}>
-          <IconButton
-            className={classes.menuButton}
-            color='inherit'
-            onClick={toggleDrawer(anchor, true)}
-          >
-            {' '}
-            <MenuIcon />
-          </IconButton>
-          <Drawer
-            anchor={anchor}
-            open={state[anchor]}
-            onClose={toggleDrawer(anchor, false)}
-          >
-            {list(anchor)}
-          </Drawer>
-        </React.Fragment>
-      ))}
+      <React.Fragment key='left'>
+        <IconButton
+          className={classes.menuButton}
+          color='inherit'
+          onClick={toggleDrawer(true)}
+        >
+          {' '}
+          <MenuIcon />
+        </IconButton>
+        <Drawer anchor='left' open={state} onClose={toggleDrawer(false)}>
+          {list()}
+        </Drawer>
+      </React.Fragment>
     </div>
   )
 }
