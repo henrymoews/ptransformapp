@@ -68,3 +68,22 @@
   max-height: calc(100vh - 56px);
   overflow: hidden;
 }
+
+.startMarker, .endMarker {
+  border-radius: 4px !important;
+  border: solid 1px black !important;
+  width: 5ch !important;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  min-height: 20px;
+  position: relative;
+}
+
+.startMarker {
+  background-color: #f5f5dc29 !important;
+}
+
+.endMarker {
+  background-color: #f5ff9674 !important;
+}

@@ -1,21 +1,10 @@
-import React, { useReducer, useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import PTMap from '../map/PTMap'
-import Paper from '@material-ui/core/Paper'
-import MapOverlay from '../map/MapOverlay'
-import Button from '@material-ui/core/Button'
-import ArrowForwardIcon from '@material-ui/icons/ArrowForward'
-import { emptyBoundsArray, emptySegments } from './TypeSupport'
-import SubsegmentUI from './SubsegmentUI'
-import Subsegment, { SegmentType } from './Subsegment'
+import { emptyBoundsArray } from './TypeSupport'
 import { makeStyles } from '@material-ui/core/styles'
 import { getSegment, getSegments, postSegment, updateSegment } from '../../helpers/api'
 import { bboxContainsBBox, bboxIntersectsBBox } from '../../helpers/geocalc'
 import SegmentForm from '../components/SegmentForm'
-
-const EMPTY_GEOJSON = {
-  'type': 'FeatureCollection',
-  'features': []
-}
 
 const useStyles = makeStyles({
   buttonGroup: {
@@ -59,33 +48,10 @@ function Recording () {
   const classes = useStyles()
 
   const [segmentsById, setSegmentsById] = useState({})
-
-  const [currentSubsegments, setCurrentSubsegments] = useState(emptySegments())
-  const [subsegmentIndexInEditMode, setSubsegmentIndexInEditMode] = useState(-1)
   const [selectedSegmentId, setSelectedSegmentId] = useState(null)
-  const forceUpdate = useReducer((updateValue) => updateValue + 1, () => 0)[1]
-  const [isChanged, setIsChanged] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   const loadedBoundingBoxesRef = useRef(emptyBoundsArray())
-
-  function updateSubsegment (index, segment) {
-    setCurrentSubsegments([segment])
-    const segmentsCopy = [...currentSubsegments]
-    segmentsCopy[index] = segment
-    setCurrentSubsegments(segmentsCopy)
-  }
-
-  function removeSubsegment (segment) {
-    setCurrentSubsegments(currentSubsegments.filter(s => s !== segment))
-  }
-
-  function addSubsegment (index = currentSubsegments.length) {
-    console.log('newIndex', index, currentSubsegments)
-    currentSubsegments.splice(index, 0, new Subsegment())
-    setSubsegmentIndexInEditMode(index)
-    forceUpdate()
-  }
 
   async function onSegmentCreated (segment) {
     const createdSegment = await postSegment({...segment, properties: {subsegments: []}})
@@ -176,10 +142,6 @@ function Recording () {
     setSegmentsById(newSegmentsById)
   }
 
-  function cancelEditing () {
-    setSelectedSegmentId(null)
-  }
-
   async function onSegmentChanged (segment) {
     await updateSegment(segment)
   }
@@ -218,44 +180,6 @@ function Recording () {
       )
     }
     return <SegmentForm segment={segmentsById[selectedSegmentId]} onChanged={onSegmentChanged}/>
-  }
-
-  function renderSegments () {
-    console.log('currentSubsegments', currentSubsegments)
-    const cards =
-      currentSubsegments.map((segment, index) =>
-        [
-          <SubsegmentUI
-            key={`segment_${index}${subsegmentIndexInEditMode === index ? '_edit' : ''}`}
-            outerSegment={segment}
-            editMode={subsegmentIndexInEditMode === index}
-            onEdit={() => setSubsegmentIndexInEditMode(index)}
-            onDelete={() => {
-              removeSubsegment(segment)
-              setSubsegmentIndexInEditMode(-1)
-            }}
-            onUpdated={updatedSegment => {
-              updateSubsegment(index, updatedSegment)
-            }}
-            onDone={() => {
-              setSubsegmentIndexInEditMode(-1)
-            }}
-          />
-        ]
-      )
-
-    return (
-      <div style={{marginTop: 20}} key={'currentSubsegments'}>
-        {cards}
-        <div className={classes.buttonGroup}>
-          <Button className={classes.bottomButton} key="addSegment" variant={'contained'}
-                  onClick={() => addSubsegment()}
-                  size={'small'} color={'primary'}>
-            Abschnitt hinzufügen
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   return (
